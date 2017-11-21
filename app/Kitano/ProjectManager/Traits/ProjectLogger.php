@@ -1,0 +1,62 @@
+<?php
+
+namespace App\Kitano\ProjectManager\Traits;
+
+use Carbon\Carbon;
+
+/**
+ * Class ProjectLogger
+ * @package App\Kitano\ProjectManager\Traits
+ *
+ * Handles Project Manager Logs
+ */
+trait ProjectLogger
+{
+    /** @var array */
+    protected static $log = [];
+
+    /**
+     * Save a log file
+     *
+     * @param string $name
+     * @param string $prefix
+     * @param string $output
+     *
+     * @return string
+     */
+    public static function saveLog($name, $prefix, $output)
+    {
+        $date = date("d_m_Y_H_i_s");
+        $file = "{$prefix}_{$name}_{$date}.log";
+        $f = file_put_contents($file, $output);
+
+        if ($f !== false) {
+            $size = strval($f);
+            return "Log file created:'".getcwd().DIRECTORY_SEPARATOR.$file."' -> {$size} bytes";
+        } else {
+            return "Could NOT write Log File {$file}!";
+        }
+    }
+
+    /**
+     * Add an entry to installation log
+     *
+     * @param string $entry
+     */
+    public static function addEntry($entry)
+    {
+        $date = Carbon::now();
+
+        static::$log[] = $date.' '.$entry.PHP_EOL;
+    }
+
+    /**
+     * Retrieve installation log
+     *
+     * @return array
+     */
+    public static function getLog()
+    {
+        return static::$log;
+    }
+}

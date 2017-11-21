@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Kitano\ProjectManager;
+namespace App\Kitano\ProjectManager\Managers;
 
 use Twig_Environment;
 use Twig_Loader_Array;
@@ -90,7 +90,8 @@ class VueCli
 
         $this->compiled['name'] = basename($this->currentFile);
         $this->compiled['path'] = $this->currentFile->getPath();
-        $this->compiled['raw'] = $this->currentContent;
+        $this->compiled['raw'] = $fc;
+        $this->compiled['inlined'] = $this->currentContent;
 
         $this->twiggify()
              ->render()

@@ -1,7 +1,6 @@
 <?php
 
-namespace App\Kitano\ProjectManager;
-
+namespace App\Kitano\ProjectManager\Services;
 
 class MustacheHandler
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Kitano\ProjectManager;
+namespace App\Kitano\ProjectManager\Traits;
 
 use GuzzleHttp\Client;
 use vierbergenlars\SemVer\version;

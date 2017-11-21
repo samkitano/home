@@ -2,12 +2,28 @@
 
 namespace App\Kitano\ProjectManager;
 
+use Illuminate\Http\Request;
+//use App\Kitano\ProjectManager\Managers\VueCli;
+use App\Kitano\ProjectManager\Traits\NpmManager;
+use App\Kitano\ProjectManager\Traits\GitDownloader;
+use App\Kitano\ProjectManager\Traits\ProjectLogger;
+//use App\Kitano\ProjectManager\Traits\VueCliVersion;
+use App\Kitano\ProjectManager\PseudoConsole\Console;
+use App\Kitano\ProjectManager\Traits\ComposerManager;
+//use App\Kitano\ProjectManager\Managers\LaravelManager;
+
+/**
+ * Class ProjectManager
+ * @package App\Kitano\ProjectManager
+ *
+ * @property-read \App\Kitano\ProjectManager\$request
+ */
 class ProjectManager
 {
-    use Communicator, ComposerManager, NpmManager;
+    use ComposerManager, NpmManager, ProjectLogger, GitDownloader;
 
     /** @var string */
-    protected $author = 'Sam Kitano <sam.kitano@gmail.com>';
+    protected $author;
 
     /**
      * Will hold base dir from $dir path
@@ -15,6 +31,9 @@ class ProjectManager
      * @var string
      */
     protected $baseDir = '';
+    
+    /** @var \App\Kitano\ProjectManager\PseudoConsole\Console */
+    protected $console;
 
     /**
      * Path to projects folder
@@ -50,6 +69,10 @@ class ProjectManager
      * @var ProjectLogger
      */
     protected $logger;
+
+    protected $manager;
+
+    protected $managersNamespace = "\\App\\Kitano\\ProjectManager\\Managers\\";
 
     /**
      * Create new Project Description
@@ -101,18 +124,18 @@ class ProjectManager
     /** @var null|array */
     protected $vueTemplate = null;
 
-
-    /**
-     * @param ProjectLogger $logger
-     */
-    public function __construct(ProjectLogger $logger)
+    public function __construct(Request $request)
     {
-        $this->logger = $logger;
+        $this->request = $request;
+
+        $this->console = new Console();
         $this->dir = env('SITES_DIR');
-        $this->localUser = env('LOCAL_USER');
+        $this->localUser = env('LOCAL_USER', getenv("username"));
         $this->composerHome = env('COMPOSER_HOME', null);
         $this->composerLocation = env('COMPOSER_LOCATION', null);
         $this->vueLocation = env('VUE_LOCATION', null);
+        $this->author = env('AUTHOR', 'Me');
+
         $this->baseDir = basename($this->dir);
     }
 
@@ -148,19 +171,42 @@ class ProjectManager
     /**
      * Create the new project
      *
-     * @param \Illuminate\Http\Request $request
-     *
      * @return array
      */
-    public function create($request)
+    public function create()
     {
-        $this->newProjectName = $request->input('projectName');
-        $this->newProjectType = $request->input('projectType');
-        $this->newProjectDescription = $request->input('projectDescription');
-        $this->request = $request;
-        $this->verbose = $request->has('_verbose');
+        $input = $this->getRequestInput();
+        $type = ucfirst($input['type']);
+        $name = $input['name'];
 
-        return $this->make();
+        $manager = $this->managersNamespace.$type.'Manager';
+        $this->verbose = isset($input['_verbose']);
+
+        if (! class_exists($manager)) {
+            $this->fail = "{$type} Manager does not exist!";
+        }
+
+        $this->verbose
+            ? $this->greet()
+            : $this->console->write("Building...");
+
+        $this->manager = new $manager($this->request);
+        $this->manager->build();
+
+        if ($this->hasFail()) {
+            return [
+                'status' => 422,
+                'message' => $this->fail,
+            ];
+        }
+
+        $this->console->write("{$type} Project '{$name}' Created!");
+        $this->console->write("CREATION COMPLETED!", 'success');
+
+        return [
+            'status' => 200,
+            'message' => $this->getSite($this->dir.DIRECTORY_SEPARATOR.$name),
+        ];
     }
 
     /**
@@ -219,7 +265,6 @@ class ProjectManager
         ];
     }
 
-
     /**
      * Change dir and send current to console
      *
@@ -227,115 +272,11 @@ class ProjectManager
      */
     protected function changeDirectory($dir)
     {
-        Communicator::send("CHDIR: ".$dir, $this->verbose);
+        $this->console->write("CHDIR: ".$dir, $this->verbose);
 
         chdir($dir);
 
-        Communicator::send("CWD: ".getcwd(), $this->verbose);
-    }
-
-    /**
-     * Create a Laravel Project
-     *
-     * @todo: Change project name & description in composer.json
-     *
-     * @return array
-     */
-    protected function createLaravel()
-    {
-        Communicator::send("STARTING CREATION", 'success');
-
-        $this->runComposer();
-
-        if (isset($this->newProjectRunNpm) && $this->newProjectRunNpm) {
-            $this->runNpm();
-        }
-    }
-
-    /**
-     * Retrieve data to build vue project
-     */
-    protected function fecthVueTemplate()
-    {
-        $input = $this->request->input();
-
-        $template = $input['vueTemplate'];
-
-        $parameters['devDependencies'] = [];
-        $parameters['dependencies'] = [];
-        $parameters['standalone'] = $input['standalone'];
-        $options = array_except(
-            $input,
-            [
-                '_method',
-                '_verbose',
-                'eslintOption',
-                'router',
-                'runNpm',
-                'projectName',
-                'projectType',
-                'projectDescription',
-                'standalone',
-                'vueTemplate',
-            ]
-        );
-        
-        foreach ($options as $key => $val) {
-            if ($val) {
-                $parameters['devDependencies'][] = $key;
-            }
-        }
-
-        if (in_array('eslint', $parameters['devDependencies'])) {
-            $parameters['devDependencies'][] = $input['eslintOption'];
-        }
-
-        if ($input['router']) {
-            $parameters['dependencies'][] = 'router';
-        }
-
-        Communicator::send("Looking for {$template} template...");
-
-        $hasLocal = GitDownloader::hasLocal($template);
-
-        if (! $hasLocal) {
-            Communicator::send('Downloading template...');
-            $dld = GitDownloader::fetch($template);
-
-            if (! $dld) {
-                Communicator::send('Error downloading template!', 'error');
-                $this->fail = 'Error downloading template!';
-
-                return false;
-            }
-
-            Communicator::send('Download complete. Extracting '.$dld);
-            $extracted = GitDownloader::extract($dld);
-
-            if (! $extracted) {
-                Communicator::send('Error extracting template!', 'error');
-                $this->fail = 'Error extracting template!';
-
-                return false;
-            }
-        }
-
-        Communicator::send('Template ready!');
-        Communicator::send("dependencies:", $this->verbose);
-        Communicator::send(implode(', ', $parameters['dependencies']), $this->verbose);
-        Communicator::send("devDependencies:", $this->verbose);
-        Communicator::send(implode(', ', $parameters['devDependencies']), $this->verbose);
-
-        $vue = new VueTemplate(
-            $this->newProjectName,
-            $this->newProjectDescription,
-            $this->author,
-            $this->version,
-            $this->private,
-            $template,
-            $parameters);
-
-        $this->vueTemplate = $vue->get();
+        $this->console->write("CWD: ".getcwd(), $this->verbose);
     }
 
     /**
@@ -349,8 +290,8 @@ class ProjectManager
         $test = VueCliVersion::isUpToDate();
 
         if (! $test) {
-            Communicator::send('Local: '.VueCliVersion::localVersion());
-            Communicator::send('Latest: '.VueCliVersion::latestVersion());
+            $this->console->write('Local: '.VueCliVersion::localVersion());
+            $this->console->write('Latest: '.VueCliVersion::latestVersion());
 
             $this->fail = 'Please run **npm i -g vue-cli** to install/update vue-cli';
         }
@@ -363,20 +304,20 @@ class ProjectManager
      */
     protected function createVue()
     {
-        Communicator::send('Checking vue-cli version...');
+        $this->console->write('Checking vue-cli version...');
 
         if (! $this->checkCliVersion()) {
             return;
         }
 
-        Communicator::send('vue-cli is up to date!');
-        Communicator::send("STARTING CREATION", 'success');
-        Communicator::send("Fetching Vue Template...", $this->verbose);
+        $this->console->write('vue-cli is up to date!');
+        $this->console->write("STARTING CREATION", 'success');
+        $this->console->write("Fetching Vue Template...", $this->verbose);
 
         $this->fecthVueTemplate();
 
-        Communicator::send("Template fetched!", $this->verbose);
-        Communicator::send("Creating Directory", $this->verbose);
+        $this->console->write("Template fetched!", $this->verbose);
+        $this->console->write("Creating Directory", $this->verbose);
 
         $projDir = $this->dir.DIRECTORY_SEPARATOR.$this->newProjectName();
 
@@ -414,7 +355,7 @@ class ProjectManager
                     $this->copyFiles($src.DIRECTORY_SEPARATOR.$file, $dst.DIRECTORY_SEPARATOR.$file);
                 }
                 else {
-                    Communicator::send("Copying ".$file, $this->verbose);
+                    $this->console->write("Copying ".$file, $this->verbose);
                     copy($src.DIRECTORY_SEPARATOR.$file, $dst.DIRECTORY_SEPARATOR.$file);
                 }
             }
@@ -431,7 +372,7 @@ class ProjectManager
      */
     protected function writeFile($file, $content)
     {
-        Communicator::send("Writing {$file}...", $this->verbose);
+        $this->console->write("Writing {$file}...", $this->verbose);
 
         file_put_contents($file, $content);
     }
@@ -442,6 +383,22 @@ class ProjectManager
     protected function getFail()
     {
         return $this->fail;
+    }
+
+    /**
+     * @return bool
+     */
+    protected function hasFail()
+    {
+        return isset($this->fail);
+    }
+
+    /**
+     * @param string $failMessage
+     */
+    protected function setFail($failMessage)
+    {
+        $this->fail = $failMessage;
     }
 
     /**
@@ -477,18 +434,19 @@ class ProjectManager
      */
     protected function greet()
     {
-        Communicator::send("Current directory is: ".getcwd());
+        $input = $this->getRequestInput();
+        $this->console->write("Current directory is: ".getcwd());
 
         $iam = shell_exec('whoami');
         $iam = $iam === '_www' ? '_www (Apache 2)' : $iam;
         $home = getenv('HOME');
         $path = getenv('PATH');
 
-        Communicator::send("HELLO! I am: {$iam}");
-        Communicator::send("Starting creation of {$this->newProjectType} Project '{$this->newProjectName}'.");
-        Communicator::send('$HOME is: '.$home);
-        Communicator::send('$PATH is: '.$path);
-        Communicator::send('OS is: '.PHP_OS);
+        $this->console->write("HELLO! I am: {$iam}");
+        $this->console->write("Starting creation of {$input['type']} Project '{$input['name']}'.");
+        $this->console->write('$HOME is: '.$home);
+        $this->console->write('$PATH is: '.$path);
+        $this->console->write('OS is: '.PHP_OS);
     }
 
     /**
@@ -519,14 +477,6 @@ class ProjectManager
     }
 
     /**
-     * @return bool
-     */
-    protected function hasFail()
-    {
-        return isset($this->fail);
-    }
-
-    /**
      * @return array
      */
     protected function iterateProjects()
@@ -547,133 +497,8 @@ class ProjectManager
         return $projects;
     }
 
-    /**
-     * @return array
-     */
-    protected function make()
+    protected function getRequestInput()
     {
-        $this->verbose ? $this->greet() : Communicator::send("Checking requirements...");
-
-        switch ($this->newProjectType) {
-            case 'Laravel':
-                $this->createLaravel();
-                break;
-            case 'Vue':
-                $this->createVue();
-                break;
-        }
-
-        if ($this->hasFail()) {
-            return [
-                'status' => 422,
-                'message' => $this->fail,
-            ];
-        }
-
-        Communicator::send("{$this->newProjectType} Project '{$this->newProjectName}' Created!");
-        Communicator::send("CREATION COMPLETED!", 'success');
-
-        return [
-            'status' => 200,
-            'message' => $this->getSite($this->dir.DIRECTORY_SEPARATOR.$this->newProjectName),
-        ];
-    }
-
-    /**
-     * @return string
-     */
-    protected function newProjectName()
-    {
-        return $this->newProjectName;
-    }
-
-    /**
-     * @return string
-     */
-    protected function newProjectType()
-    {
-        return $this->newProjectType;
-    }
-
-    /**
-     * @return string
-     */
-    protected function newProjectDescription()
-    {
-        return $this->newProjectDescription;
-    }
-
-    /**
-     * Prepare to run composer command
-     */
-    protected function runComposer()
-    {
-        $this->setComposerCommand();
-
-        Communicator::send("COMPOSER COMMAND is: '{$this->composerCommand}'", $this->verbose);
-
-        $this->changeDirectory("../../{$this->baseDir}");
-
-        Communicator::send("Executing Composer command. Please Wait...", $this->verbose);
-
-        $out = $this->executeComposerCommand();
-
-        Communicator::send("Composer finished. Writing Log...", $this->verbose);
-        Communicator::send($this->logger->saveLog($this->newProjectName, "composer-create-project", $out));
-    }
-
-    /**
-     * prepare to run npm command
-     */
-    protected function runNpm()
-    {
-        Communicator::send('Installing Node.js dependencies. Please wait...', $this->verbose);
-
-        $cwd = getcwd();
-
-        Communicator::send('CWD: '.$cwd, $this->verbose);
-
-        if (basename($cwd) !== $this->newProjectName) {
-            $this->changeDirectory($this->dir.DIRECTORY_SEPARATOR.$this->newProjectName);
-        }
-
-        $p = getenv('PATH');
-
-        Communicator::send("Path is {$p}", $this->verbose);
-
-        if (PHP_OS === 'Darwin') {
-            putenv("PATH=/Users/{$this->localUser}/.npm-packages/bin:{$p}:/usr/local/bin:/usr/local/git/bin/");
-
-            $pp = getenv('PATH');
-
-            Communicator::send("NEW Path is {$pp}", $this->verbose);
-
-            // IMPORTANT: /Library/Webserver permissions must be set to ALL users
-            exec('sudo chown -R $USER:$(id -gn $USER) /Library/WebServer/.config');
-        }
-
-        $this->setNpmCommand();
-
-        Communicator::send("Executing npm command. Please Wait...", $this->verbose);
-
-        $out = $this->runNpmCommand();
-
-        Communicator::send("NPM finished. Writing Installation Log File", $this->verbose);
-
-        $cwd = getcwd();
-
-        if (basename($cwd) === $this->newProjectName) {
-            $this->changeDirectory('../');
-        }
-
-        Communicator::send($this->logger->saveLog($this->newProjectName, "npm-install", $out));
-    }
-
-    /**
-     * @param string $failMessage
-     */
-    protected function setFail($failMessage)
-    {
-        $this->fail = $failMessage;
+        return $this->request->input();
     }
 }

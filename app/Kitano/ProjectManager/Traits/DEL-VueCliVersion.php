@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Kitano\ProjectManager;
+namespace App\Kitano\ProjectManager\Traits;
 
 use GuzzleHttp\Client;
 use vierbergenlars\SemVer\version;
@@ -26,7 +26,7 @@ trait VueCliVersion
     /**
      * Gets local vue-cli version
      * Local vue-cli package.json must be declared in .env file
-     *
+     *
      * @return string
      */
     public static function localVersion()

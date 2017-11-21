@@ -1,12 +1,10 @@
 <?php
 
-namespace App\Kitano\ProjectManager;
+namespace App\Kitano\ProjectManager\Traits;
 
 trait ComposerManager
 {
-    abstract protected function newProjectName();
-    abstract protected function newProjectType();
-    abstract protected function newProjectDescription();
+    abstract protected function getRequestInput();
 
     /**
      * composer.json content
@@ -120,15 +118,17 @@ trait ComposerManager
 
     /**
      * Sets the composer command to execute
+     *
+     * @param string $command
      */
-    protected function setComposerCommand()
+    protected function setComposerCommand($command)
     {
+        $input = $this->getRequestInput();
+
         $ch = isset($this->composerHome) ? "COMPOSER_HOME={$this->composerHome} " : '';
 
-        if ($this->newProjectType() === 'Laravel') {
-            $this->composerCommand = "{$ch}php {$this->composerLocation}".
-                " create-project --ignore-platform-reqs --prefer-dist laravel/laravel".
-                " {$this->newProjectName()} 2>&1";
-        }
+        $this->composerCommand = "{$ch}php {$this->composerLocation}".
+            " {$command}".
+            " {$input['name']} 2>&1";
     }
 }

@@ -87,7 +87,9 @@
 
             <b-row>
                 <b-col xl class="my-4">
-                    <b-btn variant="primary" @click="showCreateProject=true"><i class="fa fa-plus"></i> Create Project</b-btn>
+                    <b-btn
+                        variant="primary"
+                        @click="showCreateProject=true"><i class="fa fa-plus"></i> Create Project</b-btn>
                 </b-col>
             </b-row>
 
@@ -181,71 +183,71 @@
                 <b-form-group
                     description="Select Project Type."
                     label="Project Type *"
-                    :feedback="feedbacks.projectType" 
-                    :state="states.projectType"
+                    :feedback="feedbacks.type" 
+                    :state="states.type"
                 >
                     <b-form-select
-                        :state="states.projectType"
-                        id="projectType"
-                        v-model="fields.projectType"
+                        :state="states.type"
+                        id="type"
+                        v-model="fields.type"
                         :options="projectOptions"></b-form-select>
                 </b-form-group>
                 
                 <b-form-group
                     description="/^[a-zA-Z]\w+$/ Project name will be camelized in .json files."
                     label="Project Name *"
-                    :feedback="feedbacks.projectName" 
-                    :state="states.projectName"
+                    :feedback="feedbacks.name" 
+                    :state="states.name"
                 >
                     <b-form-input
-                        id="projectName"
-                        ref="projectName"
+                        id="name"
+                        ref="name"
                         autofocus
-                        :state="states.projectName"
+                        :state="states.name"
                         v-on:input="validateProjectName"
                         v-on:change="checkDirExists"
-                        v-model.trim="fields.projectName"></b-form-input>
+                        v-model.trim="fields.name"></b-form-input>
                 </b-form-group>
 
                 <b-form-group
                     description="/^[a-zA-Z]\w+$/"
                     label="Project Description"
-                    :feedback="feedbacks.projectDescription" 
-                    :state="states.projectDescription"
+                    :feedback="feedbacks.description" 
+                    :state="states.description"
                 >
                     <b-form-input
-                        id="projectDescription"
-                        ref="projectDescription"
-                        :state="states.projectDescription"
+                        id="description"
+                        ref="description"
+                        :state="states.description"
                         v-on:input="validateProjectDescription"
-                        v-model.trim="fields.projectDescription"></b-form-input>
+                        v-model.trim="fields.description"></b-form-input>
                 </b-form-group>
 
                 <b-form-checkbox
                     id="run_npm"
                     v-model="fields.runNpm"
-                    v-show="fields.projectType === 'Laravel'"
+                    v-show="fields.type === 'Laravel'"
                     :value="1"
                     :unchecked-value="0">Run npm install</b-form-checkbox>
 
-                <div v-if="fields.projectType === 'Vue'">
+                <div v-if="fields.type === 'Vue'">
                     <b-form-group
                         description="Select Vue Cli Template."
                         label="Vue Template *"
-                        :feedback="feedbacks.vueTemplate" 
-                        :state="states.vueTemplate"
+                        :feedback="feedbacks.template" 
+                        :state="states.template"
                     >
                         <b-form-select
-                            :state="states.vueTemplate"
-                            id="vueTemplate"
-                            v-model="fields.vueTemplate"
+                            :state="states.template"
+                            id="template"
+                            v-model="fields.template"
                             :options="vueTplOptions"></b-form-select>
                     </b-form-group>
 
-                    <div v-if="fields.vueTemplate === 'webpack'">
+                    <div v-if="fields.template === 'webpack'">
                         <b-form-checkbox
-                            id="standalone"
-                            v-model="fields.standalone"
+                            id="build"
+                            v-model="fields.build"
                             :value="1"
                             :unchecked-value="0">Runtime + Compiler?</b-form-checkbox>
 
@@ -277,18 +279,18 @@
                             description="Select Eslint Config."
                             label="Eslint Config *"
                             v-if="fields.eslint"
-                            :feedback="feedbacks.eslintOption" 
-                            :state="states.eslintOption"
+                            :feedback="feedbacks.eslintConfig" 
+                            :state="states.eslintConfig"
                         >
                             <b-form-select
-                                :state="states.eslintOption"
-                                id="eslintOption"
-                                v-model="fields.eslintOption"
+                                :state="states.eslintConfig"
+                                id="eslintConfig"
+                                v-model="fields.eslintConfig"
                                 :options="eslintOptions"></b-form-select>
                         </b-form-group>
                     </div>
 
-                    <div v-if="fields.vueTemplate === 'webpack-simple'">
+                    <div v-if="fields.template === 'webpack-simple'">
                         <b-form-checkbox
                             id="sass"
                             v-model="fields.sass"
@@ -370,37 +372,37 @@
                 composerJson: '',
                 done: false,
                 eslintOptions: [
-                    {value: 'eslintStandard', text: 'Standard'},
-                    {value: 'eslintAirbnb', text: 'Airbnb'},
-                    {value: 'eslintNone', text: 'None'}
+                    {value: 'standard', text: 'Standard'},
+                    {value: 'airbnb', text: 'Airbnb'},
+                    {value: 'none', text: 'None'}
                 ],
                 feedbacks: {
                     e2e: '',
                     eslint: '',
-                    eslintOption: '',
-                    projectDescription: '',
-                    projectName: '',
-                    projectType: '',
+                    eslintConfig: '',
+                    description: '',
+                    name: '',
+                    type: '',
                     router: '',
                     runNpm: '',
                     sass: '',
-                    standalone: '',
+                    build: '',
                     unit: '',
-                    vueTemplate: ''
+                    template: ''
                 },
                 fields: {
                     e2e: 0,
                     eslint: 0,
-                    eslintOption: 'eslintStandard',
-                    projectDescription: '',
-                    projectName: '',
-                    projectType: 'Laravel',
+                    eslintConfig: 'standard',
+                    description: '',
+                    name: '',
+                    type: 'Laravel',
                     router: 1,
                     runNpm: 1,
                     sass: 1,
-                    standalone: 1,
+                    build: 1,
                     unit: 0,
-                    vueTemplate: 'webpack',
+                    template: 'webpack',
                 },
                 forbidden,
                 location: i.location,
@@ -412,15 +414,15 @@
                 states: {
                     e2e: '',
                     eslint: '',
-                    eslintOption: '',
-                    projectDescription: '',
-                    projectName: '',
-                    projectType: true,
+                    eslintConfig: '',
+                    description: '',
+                    name: '',
+                    type: true,
                     router: '',
                     runNpm: '',
                     sass: '',
-                    standalone: '',
-                    vueTemplate: '',
+                    build: '',
+                    template: '',
                     unit: ''
                 },
                 svgs,
@@ -441,7 +443,7 @@
             },
 
             checkDirExists () {
-                let found = find(this.sites, {folder: this.fields.projectName})
+                let found = find(this.sites, {folder: this.fields.name})
 
                 if (found) {
                     this.setInvalidProject()
@@ -465,13 +467,13 @@
 
                 axios
                     // firstly, we check if project can be created at all
-                    .get(`can-create-project/${this.fields.projectName}`)
+                    .get(`can-create-project/${this.fields.name}`)
                     .then((r) => { // then either we start creating project for real...
                         this.output.push(r.data.message)
                         this.startCreating()
                     })
                     .catch((e) => { // ...or miserably fail
-                        if (e.response.data.message === `Project '${this.fields.projectName}' already exists!`) {
+                        if (e.response.data.message === `Project '${this.fields.name}' already exists!`) {
                             this.setInvalidProject()
                         } else {
                             this.$swal('ERROR', e.response.data.message, 'error')
@@ -525,45 +527,45 @@
             resetFields () {
                 this.fields.e2e = 0
                 this.fields.eslint = 0
-                this.fields.eslintOption = 'eslintStandard'
-                this.fields.projectDescription = ''
-                this.fields.projectName = ''
-                this.fields.projectType = 'Laravel'
+                this.fields.eslintConfig = 'standard'
+                this.fields.description = ''
+                this.fields.name = ''
+                this.fields.type = 'Laravel'
                 this.fields.router = 1
                 this.fields.runNpm = 1
                 this.fields.sass = 1
-                this.fields.standalone = 1
+                this.fields.build = 1
                 this.fields.unit = 0
-                this.fields.vueTemplate = 'webpack'
+                this.fields.template = 'webpack'
             },
 
             resetStates () {
                 this.states.e2e = ''
                 this.states.eslint = ''
-                this.states.eslintOption = ''
-                this.states.projectType = '',
-                this.states.projectName = ''
-                this.states.projectDescription = ''
-                this.states.vueTemplate = ''
+                this.states.eslintConfig = ''
+                this.states.type = '',
+                this.states.name = ''
+                this.states.description = ''
+                this.states.template = ''
                 this.states.sass = ''
-                this.states.standalone = ''
+                this.states.build = ''
                 this.states.router = ''
                 this.states.unit = ''
 
                 this.feedbacks.e2e = ''
                 this.feedbacks.eslint = ''
-                this.feedbacks.eslintOption = ''
-                this.feedbacks.projectType = ''
-                this.feedbacks.projectName = ''
-                this.feedbacks.projectDescription = ''
-                this.feedbacks.vueTemplate = ''
+                this.feedbacks.eslintConfig = ''
+                this.feedbacks.type = ''
+                this.feedbacks.name = ''
+                this.feedbacks.description = ''
+                this.feedbacks.template = ''
                 this.feedbacks.sass = ''
-                this.feedbacks.standalone = ''
+                this.feedbacks.build = ''
                 this.feedbacks.router = ''
                 this.feedbacks.unit = ''
             },
 
-                        sendOutput (out) {
+            sendOutput (out) {
                 let json = this.isJson(out)
                 let type = 'info'
                 let msg = out
@@ -583,9 +585,9 @@
             },
 
             setInvalidProject () {
-                this.states.projectName = false
-                this.feedbacks.projectName = `Project '${this.fields.projectName}' already exists!`
-                this.$refs.projectName.focus()
+                this.states.name = false
+                this.feedbacks.name = `Project '${this.fields.name}' already exists!`
+                this.$refs.name.focus()
             },
 
             startCreating () {
@@ -630,23 +632,23 @@
             },
 
             validateProject () {
-                if (!this.inArray(this.fields.projectType, this.projectOptions)) {
-                    this.states.projectType = false
-                    this.feedbacks.projectType = `"${this.projectType}" is not a valid project type`
+                if (!this.inArray(this.fields.type, this.projectOptions)) {
+                    this.states.type = false
+                    this.feedbacks.type = `"${this.type}" is not a valid project type`
                 } else {
-                    this.states.projectType = true
+                    this.states.type = true
                 }
 
-                if (this.fields.projectName === '') {
-                    this.states.projectName = false
-                    this.feedbacks.projectName = 'A project name is required!'
+                if (this.fields.name === '') {
+                    this.states.name = false
+                    this.feedbacks.name = 'A project name is required!'
                 } else {
                     if (this.validateProjectName()) {
-                        this.states.projectName = true
+                        this.states.name = true
                     }
                 }
 
-                return this.states.projectType && this.states.projectName
+                return this.states.type && this.states.name
             },
 
             validateProjectName () {
@@ -654,26 +656,26 @@
                     return false
                 }
 
-                if (!this.fields.projectName.match(/^[a-zA-Z]\w+$/) 
-                    || this.inArray(this.fields.projectName.toUpperCase(), this.forbidden)) {
-                    this.states.projectName = false
-                    this.feedbacks.projectName = 'Invalid Name!'
+                if (!this.fields.name.match(/^[a-zA-Z]\w+$/) 
+                    || this.inArray(this.fields.name.toUpperCase(), this.forbidden)) {
+                    this.states.name = false
+                    this.feedbacks.name = 'Invalid Name!'
                     return false
                 } else {
-                    this.states.projectName = true
-                    this.feedbacks.projectName = ''
+                    this.states.name = true
+                    this.feedbacks.name = ''
                     return true
                 }
             },
 
             validateProjectDescription () {
-                if (!this.fields.projectDescription.match(/^[a-zA-Z]\w+$/) || this.inArray(this.fields.projectDescription, this.forbidden)) {
-                    this.states.projectDescription = false
-                    this.feedbacks.projectDescription = 'Invalid Description!'
+                if (!this.fields.description.match(/^[a-zA-Z]\w+$/) || this.inArray(this.fields.description, this.forbidden)) {
+                    this.states.description = false
+                    this.feedbacks.description = 'Invalid Description!'
                     return false
                 } else {
-                    this.states.projectDescription = true
-                    this.feedbacks.projectDescription = ''
+                    this.states.description = true
+                    this.feedbacks.description = ''
                     return true
                 }
             }

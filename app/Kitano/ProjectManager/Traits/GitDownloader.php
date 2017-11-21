@@ -1,18 +1,18 @@
 <?php
 
-namespace App\Kitano\ProjectManager;
+namespace App\Kitano\ProjectManager\Traits;
 
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
 use ZipArchive;
+use GuzzleHttp\Client;
+use RecursiveIteratorIterator;
+use RecursiveDirectoryIterator;
 
 trait GitDownloader
 {
     public static function fetch($template)
     {
         if (! static::hasLocal($template)) {
-            $dlPath = public_path('downloads/vuejs-templates');
-            $file = $dlPath.DIRECTORY_SEPARATOR.$template.'.zip';
+            $file = $template.'.zip';
             $url = "https://github.com/vuejs-templates/{$template}/archive/master.zip";
 
             file_put_contents($file,
@@ -67,9 +67,15 @@ trait GitDownloader
 
     public static function hasLocal($template)
     {
-        $dlPath = public_path('downloads/vuejs-templates');
-        $tplPath = $dlPath.DIRECTORY_SEPARATOR.$template;
+        return is_dir($template);
+    }
 
-        return is_dir($tplPath);
+    public static function latestVersion($repo)
+    {
+        $client = new Client();
+        $res = $client->request('GET', $repo);
+        $data = json_decode($res->getBody(), true);
+
+        return $data['dist-tags']['latest'];
     }
 }

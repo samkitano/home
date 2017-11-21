@@ -43453,6 +43453,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 //
 //
 //
+//
+//
 
 var consoleColors = {
     info: 'green',
@@ -43490,34 +43492,34 @@ var consoleColors = {
         return {
             composerJson: '',
             done: false,
-            eslintOptions: [{ value: 'eslintStandard', text: 'Standard' }, { value: 'eslintAirbnb', text: 'Airbnb' }, { value: 'eslintNone', text: 'None' }],
+            eslintOptions: [{ value: 'standard', text: 'Standard' }, { value: 'airbnb', text: 'Airbnb' }, { value: 'none', text: 'None' }],
             feedbacks: {
                 e2e: '',
                 eslint: '',
-                eslintOption: '',
-                projectDescription: '',
-                projectName: '',
-                projectType: '',
+                eslintConfig: '',
+                description: '',
+                name: '',
+                type: '',
                 router: '',
                 runNpm: '',
                 sass: '',
-                standalone: '',
+                build: '',
                 unit: '',
-                vueTemplate: ''
+                template: ''
             },
             fields: {
                 e2e: 0,
                 eslint: 0,
-                eslintOption: 'eslintStandard',
-                projectDescription: '',
-                projectName: '',
-                projectType: 'Laravel',
+                eslintConfig: 'standard',
+                description: '',
+                name: '',
+                type: 'Laravel',
                 router: 1,
                 runNpm: 1,
                 sass: 1,
-                standalone: 1,
+                build: 1,
                 unit: 0,
-                vueTemplate: 'webpack'
+                template: 'webpack'
             },
             forbidden: __WEBPACK_IMPORTED_MODULE_1__forbiddenFileNames__["a" /* default */],
             location: i.location,
@@ -43529,15 +43531,15 @@ var consoleColors = {
             states: {
                 e2e: '',
                 eslint: '',
-                eslintOption: '',
-                projectDescription: '',
-                projectName: '',
-                projectType: true,
+                eslintConfig: '',
+                description: '',
+                name: '',
+                type: true,
                 router: '',
                 runNpm: '',
                 sass: '',
-                standalone: '',
-                vueTemplate: '',
+                build: '',
+                template: '',
                 unit: ''
             },
             svgs: __WEBPACK_IMPORTED_MODULE_0__svgPaths__["a" /* default */],
@@ -43558,7 +43560,7 @@ var consoleColors = {
             this.done = false;
         },
         checkDirExists: function checkDirExists() {
-            var found = Object(__WEBPACK_IMPORTED_MODULE_2_lodash__["find"])(this.sites, { folder: this.fields.projectName });
+            var found = Object(__WEBPACK_IMPORTED_MODULE_2_lodash__["find"])(this.sites, { folder: this.fields.name });
 
             if (found) {
                 this.setInvalidProject();
@@ -43582,13 +43584,13 @@ var consoleColors = {
 
             axios
             // firstly, we check if project can be created at all
-            .get('can-create-project/' + this.fields.projectName).then(function (r) {
+            .get('can-create-project/' + this.fields.name).then(function (r) {
                 // then either we start creating project for real...
                 _this2.output.push(r.data.message);
                 _this2.startCreating();
             }).catch(function (e) {
                 // ...or miserably fail
-                if (e.response.data.message === 'Project \'' + _this2.fields.projectName + '\' already exists!') {
+                if (e.response.data.message === 'Project \'' + _this2.fields.name + '\' already exists!') {
                     _this2.setInvalidProject();
                 } else {
                     _this2.$swal('ERROR', e.response.data.message, 'error');
@@ -43633,38 +43635,38 @@ var consoleColors = {
         resetFields: function resetFields() {
             this.fields.e2e = 0;
             this.fields.eslint = 0;
-            this.fields.eslintOption = 'eslintStandard';
-            this.fields.projectDescription = '';
-            this.fields.projectName = '';
-            this.fields.projectType = 'Laravel';
+            this.fields.eslintConfig = 'standard';
+            this.fields.description = '';
+            this.fields.name = '';
+            this.fields.type = 'Laravel';
             this.fields.router = 1;
             this.fields.runNpm = 1;
             this.fields.sass = 1;
-            this.fields.standalone = 1;
+            this.fields.build = 1;
             this.fields.unit = 0;
-            this.fields.vueTemplate = 'webpack';
+            this.fields.template = 'webpack';
         },
         resetStates: function resetStates() {
             this.states.e2e = '';
             this.states.eslint = '';
-            this.states.eslintOption = '';
-            this.states.projectType = '', this.states.projectName = '';
-            this.states.projectDescription = '';
-            this.states.vueTemplate = '';
+            this.states.eslintConfig = '';
+            this.states.type = '', this.states.name = '';
+            this.states.description = '';
+            this.states.template = '';
             this.states.sass = '';
-            this.states.standalone = '';
+            this.states.build = '';
             this.states.router = '';
             this.states.unit = '';
 
             this.feedbacks.e2e = '';
             this.feedbacks.eslint = '';
-            this.feedbacks.eslintOption = '';
-            this.feedbacks.projectType = '';
-            this.feedbacks.projectName = '';
-            this.feedbacks.projectDescription = '';
-            this.feedbacks.vueTemplate = '';
+            this.feedbacks.eslintConfig = '';
+            this.feedbacks.type = '';
+            this.feedbacks.name = '';
+            this.feedbacks.description = '';
+            this.feedbacks.template = '';
             this.feedbacks.sass = '';
-            this.feedbacks.standalone = '';
+            this.feedbacks.build = '';
             this.feedbacks.router = '';
             this.feedbacks.unit = '';
         },
@@ -43687,9 +43689,9 @@ var consoleColors = {
             this.output.push('<span style="color:' + color + '">' + msg + '</span>');
         },
         setInvalidProject: function setInvalidProject() {
-            this.states.projectName = false;
-            this.feedbacks.projectName = 'Project \'' + this.fields.projectName + '\' already exists!';
-            this.$refs.projectName.focus();
+            this.states.name = false;
+            this.feedbacks.name = 'Project \'' + this.fields.name + '\' already exists!';
+            this.$refs.name.focus();
         },
         startCreating: function startCreating() {
             var _this4 = this;
@@ -43730,47 +43732,47 @@ var consoleColors = {
             return false;
         },
         validateProject: function validateProject() {
-            if (!this.inArray(this.fields.projectType, this.projectOptions)) {
-                this.states.projectType = false;
-                this.feedbacks.projectType = '"' + this.projectType + '" is not a valid project type';
+            if (!this.inArray(this.fields.type, this.projectOptions)) {
+                this.states.type = false;
+                this.feedbacks.type = '"' + this.type + '" is not a valid project type';
             } else {
-                this.states.projectType = true;
+                this.states.type = true;
             }
 
-            if (this.fields.projectName === '') {
-                this.states.projectName = false;
-                this.feedbacks.projectName = 'A project name is required!';
+            if (this.fields.name === '') {
+                this.states.name = false;
+                this.feedbacks.name = 'A project name is required!';
             } else {
                 if (this.validateProjectName()) {
-                    this.states.projectName = true;
+                    this.states.name = true;
                 }
             }
 
-            return this.states.projectType && this.states.projectName;
+            return this.states.type && this.states.name;
         },
         validateProjectName: function validateProjectName() {
             if (this.checkDirExists()) {
                 return false;
             }
 
-            if (!this.fields.projectName.match(/^[a-zA-Z]\w+$/) || this.inArray(this.fields.projectName.toUpperCase(), this.forbidden)) {
-                this.states.projectName = false;
-                this.feedbacks.projectName = 'Invalid Name!';
+            if (!this.fields.name.match(/^[a-zA-Z]\w+$/) || this.inArray(this.fields.name.toUpperCase(), this.forbidden)) {
+                this.states.name = false;
+                this.feedbacks.name = 'Invalid Name!';
                 return false;
             } else {
-                this.states.projectName = true;
-                this.feedbacks.projectName = '';
+                this.states.name = true;
+                this.feedbacks.name = '';
                 return true;
             }
         },
         validateProjectDescription: function validateProjectDescription() {
-            if (!this.fields.projectDescription.match(/^[a-zA-Z]\w+$/) || this.inArray(this.fields.projectDescription, this.forbidden)) {
-                this.states.projectDescription = false;
-                this.feedbacks.projectDescription = 'Invalid Description!';
+            if (!this.fields.description.match(/^[a-zA-Z]\w+$/) || this.inArray(this.fields.description, this.forbidden)) {
+                this.states.description = false;
+                this.feedbacks.description = 'Invalid Description!';
                 return false;
             } else {
-                this.states.projectDescription = true;
-                this.feedbacks.projectDescription = '';
+                this.states.description = true;
+                this.feedbacks.description = '';
                 return true;
             }
         }
@@ -61318,23 +61320,23 @@ var render = function() {
                   attrs: {
                     description: "Select Project Type.",
                     label: "Project Type *",
-                    feedback: _vm.feedbacks.projectType,
-                    state: _vm.states.projectType
+                    feedback: _vm.feedbacks.type,
+                    state: _vm.states.type
                   }
                 },
                 [
                   _c("b-form-select", {
                     attrs: {
-                      state: _vm.states.projectType,
-                      id: "projectType",
+                      state: _vm.states.type,
+                      id: "type",
                       options: _vm.projectOptions
                     },
                     model: {
-                      value: _vm.fields.projectType,
+                      value: _vm.fields.type,
                       callback: function($$v) {
-                        _vm.$set(_vm.fields, "projectType", $$v)
+                        _vm.$set(_vm.fields, "type", $$v)
                       },
-                      expression: "fields.projectType"
+                      expression: "fields.type"
                     }
                   })
                 ],
@@ -61348,32 +61350,32 @@ var render = function() {
                     description:
                       "/^[a-zA-Z]\\w+$/ Project name will be camelized in .json files.",
                     label: "Project Name *",
-                    feedback: _vm.feedbacks.projectName,
-                    state: _vm.states.projectName
+                    feedback: _vm.feedbacks.name,
+                    state: _vm.states.name
                   }
                 },
                 [
                   _c("b-form-input", {
-                    ref: "projectName",
+                    ref: "name",
                     attrs: {
-                      id: "projectName",
+                      id: "name",
                       autofocus: "",
-                      state: _vm.states.projectName
+                      state: _vm.states.name
                     },
                     on: {
                       input: _vm.validateProjectName,
                       change: _vm.checkDirExists
                     },
                     model: {
-                      value: _vm.fields.projectName,
+                      value: _vm.fields.name,
                       callback: function($$v) {
                         _vm.$set(
                           _vm.fields,
-                          "projectName",
+                          "name",
                           typeof $$v === "string" ? $$v.trim() : $$v
                         )
                       },
-                      expression: "fields.projectName"
+                      expression: "fields.name"
                     }
                   })
                 ],
@@ -61386,28 +61388,25 @@ var render = function() {
                   attrs: {
                     description: "/^[a-zA-Z]\\w+$/",
                     label: "Project Description",
-                    feedback: _vm.feedbacks.projectDescription,
-                    state: _vm.states.projectDescription
+                    feedback: _vm.feedbacks.description,
+                    state: _vm.states.description
                   }
                 },
                 [
                   _c("b-form-input", {
-                    ref: "projectDescription",
-                    attrs: {
-                      id: "projectDescription",
-                      state: _vm.states.projectDescription
-                    },
+                    ref: "description",
+                    attrs: { id: "description", state: _vm.states.description },
                     on: { input: _vm.validateProjectDescription },
                     model: {
-                      value: _vm.fields.projectDescription,
+                      value: _vm.fields.description,
                       callback: function($$v) {
                         _vm.$set(
                           _vm.fields,
-                          "projectDescription",
+                          "description",
                           typeof $$v === "string" ? $$v.trim() : $$v
                         )
                       },
-                      expression: "fields.projectDescription"
+                      expression: "fields.description"
                     }
                   })
                 ],
@@ -61421,8 +61420,8 @@ var render = function() {
                     {
                       name: "show",
                       rawName: "v-show",
-                      value: _vm.fields.projectType === "Laravel",
-                      expression: "fields.projectType === 'Laravel'"
+                      value: _vm.fields.type === "Laravel",
+                      expression: "fields.type === 'Laravel'"
                     }
                   ],
                   attrs: { id: "run_npm", value: 1, "unchecked-value": 0 },
@@ -61437,7 +61436,7 @@ var render = function() {
                 [_vm._v("Run npm install")]
               ),
               _vm._v(" "),
-              _vm.fields.projectType === "Vue"
+              _vm.fields.type === "Vue"
                 ? _c(
                     "div",
                     [
@@ -61447,30 +61446,30 @@ var render = function() {
                           attrs: {
                             description: "Select Vue Cli Template.",
                             label: "Vue Template *",
-                            feedback: _vm.feedbacks.vueTemplate,
-                            state: _vm.states.vueTemplate
+                            feedback: _vm.feedbacks.template,
+                            state: _vm.states.template
                           }
                         },
                         [
                           _c("b-form-select", {
                             attrs: {
-                              state: _vm.states.vueTemplate,
-                              id: "vueTemplate",
+                              state: _vm.states.template,
+                              id: "template",
                               options: _vm.vueTplOptions
                             },
                             model: {
-                              value: _vm.fields.vueTemplate,
+                              value: _vm.fields.template,
                               callback: function($$v) {
-                                _vm.$set(_vm.fields, "vueTemplate", $$v)
+                                _vm.$set(_vm.fields, "template", $$v)
                               },
-                              expression: "fields.vueTemplate"
+                              expression: "fields.template"
                             }
                           })
                         ],
                         1
                       ),
                       _vm._v(" "),
-                      _vm.fields.vueTemplate === "webpack"
+                      _vm.fields.template === "webpack"
                         ? _c(
                             "div",
                             [
@@ -61478,16 +61477,16 @@ var render = function() {
                                 "b-form-checkbox",
                                 {
                                   attrs: {
-                                    id: "standalone",
+                                    id: "build",
                                     value: 1,
                                     "unchecked-value": 0
                                   },
                                   model: {
-                                    value: _vm.fields.standalone,
+                                    value: _vm.fields.build,
                                     callback: function($$v) {
-                                      _vm.$set(_vm.fields, "standalone", $$v)
+                                      _vm.$set(_vm.fields, "build", $$v)
                                     },
-                                    expression: "fields.standalone"
+                                    expression: "fields.build"
                                   }
                                 },
                                 [_vm._v("Runtime + Compiler?")]
@@ -61576,27 +61575,27 @@ var render = function() {
                                       attrs: {
                                         description: "Select Eslint Config.",
                                         label: "Eslint Config *",
-                                        feedback: _vm.feedbacks.eslintOption,
-                                        state: _vm.states.eslintOption
+                                        feedback: _vm.feedbacks.eslintConfig,
+                                        state: _vm.states.eslintConfig
                                       }
                                     },
                                     [
                                       _c("b-form-select", {
                                         attrs: {
-                                          state: _vm.states.eslintOption,
-                                          id: "eslintOption",
+                                          state: _vm.states.eslintConfig,
+                                          id: "eslintConfig",
                                           options: _vm.eslintOptions
                                         },
                                         model: {
-                                          value: _vm.fields.eslintOption,
+                                          value: _vm.fields.eslintConfig,
                                           callback: function($$v) {
                                             _vm.$set(
                                               _vm.fields,
-                                              "eslintOption",
+                                              "eslintConfig",
                                               $$v
                                             )
                                           },
-                                          expression: "fields.eslintOption"
+                                          expression: "fields.eslintConfig"
                                         }
                                       })
                                     ],
@@ -61608,7 +61607,7 @@ var render = function() {
                           )
                         : _vm._e(),
                       _vm._v(" "),
-                      _vm.fields.vueTemplate === "webpack-simple"
+                      _vm.fields.template === "webpack-simple"
                         ? _c(
                             "div",
                             [

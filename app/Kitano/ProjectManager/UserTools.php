@@ -2,7 +2,6 @@
 
 namespace App\Kitano\ProjectManager;
 
-
 class UserTools
 {
     /**
