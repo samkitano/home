@@ -3,29 +3,31 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Kitano\ProjectManager\ProjectManager;
+use App\Kitano\ProjectManager\ProjectBuilder;
+use App\Kitano\ProjectManager\ProjectsBrowser;
 
 class ProjectsController extends Controller
 {
-    /**
-     * @var ProjectManager
-     */
-    protected $manager;
+    /** @var ProjectBuilder */
+    protected $builder;
 
-    /**
-     * @var Request
-     */
+    /** @var ProjectsBrowser */
+    protected $browser;
+
+    /** @var Request */
     protected $request;
 
 
     /**
-     * @param \Illuminate\Http\Request                  $request
-     * @param \App\Kitano\ProjectManager\ProjectManager $manager
+     * @param \Illuminate\Http\Request $request
+     * @param \App\Kitano\ProjectManager\ProjectBuilder $builder
+     * @param \App\Kitano\ProjectManager\ProjectsBrowser $browser
      */
-    public function __construct(Request $request, ProjectManager $manager)
+    public function __construct(Request $request, ProjectBuilder $builder, ProjectsBrowser $browser)
     {
         $this->request = $request;
-        $this->manager = $manager;
+        $this->builder = $builder;
+        $this->browser = $browser;
     }
 
     /**
@@ -35,7 +37,7 @@ class ProjectsController extends Controller
      */
     public function index()
     {
-        return view('index')->with('projects', $this->manager->getProjects());
+        return view('index')->with('projects', $this->browser->getProjects());
     }
 
     /**
@@ -45,7 +47,7 @@ class ProjectsController extends Controller
      */
     public function store()
     {
-        $res = $this->manager->create($this->request);
+        $res = $this->builder->create($this->request);
 
         if ($res['status'] === 200) {
             return response()->json(['site' => $res['message']], 200);
@@ -61,10 +63,53 @@ class ProjectsController extends Controller
      */
     public function fixPermissions()
     {
-        $res = $this->manager->fixStoragePermissions($this->request->input('path'));
+        $res = $this->fixStoragePermissions($this->request->input('path'));
 
         return response()->json(['message' => $res['message']], $res['status']);
     }
+
+    /**
+     * Fix storage permissions.
+     *
+     * @param string $path
+     *
+     * @return array
+     */
+    public function fixStoragePermissions($path)
+    {
+        $storage = $path.'/storage';
+
+        if (! is_dir($path)) {
+            if (! is_dir($storage)) {
+                return [
+                    'status' => 422,
+                    'message' => "{$storage} not found!",
+                ];
+            }
+
+            return [
+                'status' => 422,
+                'message' => "{$path} is not a directory!",
+            ];
+        }
+
+        chmod($storage, 0755); // FIXME chmod(): Operation not permitted on Mac
+
+        $current = substr(sprintf('%o', fileperms($storage)), -4);
+
+        if ($current !== '0755') {
+            return [
+                'status' => 422,
+                'message' => "Could not set permissions to {$storage}!"
+            ];
+        }
+
+        return [
+            'status' => 200,
+            'message' => "{$storage} permissions = {$current}",
+        ];
+    }
+
 
     /**
      * Remove the specified resource from storage.
@@ -85,7 +130,7 @@ class ProjectsController extends Controller
      */
     public function canCreateProject($name)
     {
-        $res = $this->manager->canCreateProject($name);
+        $res = $this->builder->canCreateProject($name);
 
         return response()->json(['message' => $res['message']], $res['status']);
     }

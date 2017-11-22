@@ -3,12 +3,17 @@
 namespace App\Kitano\ProjectManager\Managers;
 
 use vierbergenlars\SemVer\version;
-use App\Kitano\ProjectManager\ProjectManager;
+use App\Kitano\ProjectManager\ProjectBuilder;
+use App\Kitano\ProjectManager\Services\VueCli;
 use App\Kitano\ProjectManager\Contracts\Manager;
-use App\Kitano\ProjectManager\Traits\ProjectLogger;
+use App\Kitano\ProjectManager\Traits\GitDownloader;
 
-class VueManager extends ProjectManager implements Manager
+class VueManager extends ProjectBuilder implements Manager
 {
+    use GitDownloader;
+
+    protected $template;
+
     /**
      * Vue-Cli Templates Repository urls
      *
@@ -33,13 +38,14 @@ class VueManager extends ProjectManager implements Manager
 
     public function build()
     {
+        $template = $this->request->input('template');
+        $this->template = $template;
+
         $this->tplPath = public_path('downloads/vuejs-templates');
 
-        $input = $this->getRequestInput();
+        $this->console->write("Looking for Vue Template '{$template}'.", $this->verbose);
 
-        $this->console->write("Looking for Vue Template '{$input['template']}'.", $this->verbose);
-
-        if (! $this->fecthVueTemplate($input['template'])) {
+        if (! $this->findTemplate()) {
             return false;
         }
 
@@ -51,28 +57,37 @@ class VueManager extends ProjectManager implements Manager
     /**
      * Download required template
      *
-     * @param string $template
-     *
      * @return bool
      */
-    protected function fecthVueTemplate($template)
+    protected function findTemplate()
     {
-        $templatePath = $this->tplPath.DIRECTORY_SEPARATOR.$template;
+        $templatePath = $this->tplPath.DIRECTORY_SEPARATOR.$this->template;
+        $exists = $this->templateExistsLocally($templatePath);
+        $v = $exists ? $this->getTemplateVersions() : false;
+        $match = $v && $this->compareVersions($v);
 
-        if (! $this->templateExistsLocally($templatePath)) {
-            $this->extractTemplate($this->downloadTemplate($templatePath));
+        if (! $exists || ($exists && ! $match)) {
+
+            if (! $match) {
+                $this->console->write('New template version available.', $this->verbose);
+            }
+
+            $downloaded = $this->downloadTemplate($this->template);
+
+            if (! $downloaded) {
+                return false;
+            }
+
+            $this->console->write('Download complete. Extracting '.$downloaded, $this->verbose);
+
+            $extracted = $this->extractTemplate($downloaded);
+
+            if (! $extracted) {
+                return false;
+            }
         }
 
-        if (! $v = $this->getTemplateVersions($templatePath)) {
-            return false;
-        }
-
-        if (! $this->compareVersions($v)) {
-            $this->console->write('New template version available. Downloading...');
-            $this->extractTemplate($this->downloadTemplate($templatePath));
-        }
-
-        $this->console->write('Template Ready.');
+        $this->console->write('Template Ready!');
 
         return true;
     }
@@ -86,25 +101,23 @@ class VueManager extends ProjectManager implements Manager
     {
         $this->console->write('Downloading template...');
 
-        $dld = GitDownloader::fetch($template);
+        $download = $this->fetchTemplate($template);
 
-        if (! $dld) {
+        if (! $download) {
             $this->console->write('Error downloading template!', 'error');
             $this->fail = 'Error downloading template!';
 
             return false;
         }
 
-        $this->console->write('Download complete. Extracting '.$dld);
-
-        return true;
+        return $download;
     }
 
     protected function extractTemplate($dld)
     {
-        $this->console->write('Extracting files...');
+        $this->console->write("Extracting files from {$dld}");
 
-        $extracted = GitDownloader::extract($dld);
+        $extracted = $this->extract($dld);
 
         if (! $extracted) {
             $this->console->write('Error extracting template!', 'error');
@@ -118,23 +131,30 @@ class VueManager extends ProjectManager implements Manager
         return true;
     }
 
-    protected function getTemplateVersions($template)
+    protected function getTemplateVersions()
     {
-        $local = $this->getLocalTemplateVersion($template);
-        $name = basename($template);
+        $local = $this->getLocalTemplateVersion();
 
-        if ($local === '') {
-            $msg = "Error fetching local version for template {$name}";
+        if (! $local) {
+            $msg = "{$this->template} not found. Unable to retrieve version.";
             $this->console->write($msg, 'error');
             $this->fail = $msg;
 
             return false;
         }
 
-        $remote = GitDownloader::latestVersion($this->templateRepos[$name]);
+        if ($local === '') {
+            $msg = "Error fetching local version for template {$this->template}";
+            $this->console->write($msg, 'error');
+            $this->fail = $msg;
+
+            return false;
+        }
+
+        $remote = $this->latestVersion($this->templateRepos[$this->template]);
 
         if ($remote === null) {
-            $msg =  "Error fetching Gthub version for template {$name}";
+            $msg =  "Error fetching Gthub version for template {$this->template}";
             $this->console->write($msg, 'error');
             $this->fail = $msg;
 
@@ -149,18 +169,25 @@ class VueManager extends ProjectManager implements Manager
         return version::eq($versions[0], $versions[1]);
     }
 
-    protected function getLocalTemplateVersion($fullPath)
+    protected function getLocalTemplateVersion()
     {
-        if (! file_exists($fullPath)) {
-            return '';
+        $file = $this->tplPath.$this->projectType.DIRECTORY_SEPARATOR.'package.json';
+
+        if (! file_exists($file)) {
+            return false;
         }
 
-        $pj = json_decode(file_get_contents($fullPath));
+        $pj = json_decode(file_get_contents($file));
 
         if (! isset($pj->version)) {
             return '';
         }
 
         return $pj->version;
+    }
+
+    protected function getTemplatesPath()
+    {
+        return $this->tplPath;
     }
 }

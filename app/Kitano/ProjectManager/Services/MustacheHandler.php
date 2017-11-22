@@ -47,7 +47,6 @@ class MustacheHandler
     /** @var string */
     protected $content;
 
-
     /** @var string */
     protected $mustache = '';
 

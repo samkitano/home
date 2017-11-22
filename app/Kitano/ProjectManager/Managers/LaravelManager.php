@@ -2,11 +2,10 @@
 
 namespace App\Kitano\ProjectManager\Managers;
 
-use App\Kitano\ProjectManager\ProjectManager;
+use App\Kitano\ProjectManager\ProjectBuilder;
 use App\Kitano\ProjectManager\Contracts\Manager;
-use App\Kitano\ProjectManager\Traits\ProjectLogger;
 
-class LaravelManager extends ProjectManager implements Manager
+class LaravelManager extends ProjectBuilder implements Manager
 {
     /**
      * Create a laravel Project
@@ -15,7 +14,7 @@ class LaravelManager extends ProjectManager implements Manager
      */
     public function build()
     {
-        $input = $this->getRequestInput();
+        $this->console->write("&#9881; Running composer.");
 
         $this->setComposerCommand('create-project --ignore-platform-reqs --prefer-dist laravel/laravel');
 
@@ -23,23 +22,23 @@ class LaravelManager extends ProjectManager implements Manager
 
         $this->changeDirectory("../../{$this->baseDir}");
 
-        $this->console->write("Executing Composer command. Please Wait...", $this->verbose);
+        $this->console->write("Executing composer command. Please Wait...", $this->verbose);
 
         $out = $this->executeComposerCommand();
 
         $this->console->write("Composer finished. Writing Composer Log...", $this->verbose);
 
-        $logged = ProjectLogger::saveLog($input['name'], "composer-create-project", $out);
+        $logged = $this->saveLog($this->projectName, "composer-create-project", $out);
 
         $this->console->write($logged);
 
-        if (isset($input['runNpm']) && $input['runNpm']) {
+        if ($this->runNpm) {
             $this->runNpm();
         }
 
         $this->console->write("Composer finished. Writing Installation Log...", $this->verbose);
 
-        $logged = ProjectLogger::saveLog($input['name'], "installation", ProjectLogger::getLog());
+        $logged = $this->saveLog($this->projectName, "installation", $this->getLog());
 
         $this->console->write($logged);
     }
@@ -49,14 +48,14 @@ class LaravelManager extends ProjectManager implements Manager
      */
     protected function runNpm()
     {
-        $this->console->write('Installing Node.js dependencies. Please wait...', $this->verbose);
+        $this->console->write('&#9881; Running npm.');
 
         $cwd = getcwd();
 
         $this->console->write('CWD: '.$cwd, $this->verbose);
 
-        if (basename($cwd) !== $this->newProjectName) {
-            $this->changeDirectory($this->dir.DIRECTORY_SEPARATOR.$this->newProjectName);
+        if (basename($cwd) !== $this->projectName) {
+            $this->changeDirectory($this->dir.DIRECTORY_SEPARATOR.$this->projectName);
         }
 
         $p = getenv('PATH');
@@ -84,11 +83,11 @@ class LaravelManager extends ProjectManager implements Manager
 
         $cwd = getcwd();
 
-        if (basename($cwd) === $this->newProjectName) {
+        if (basename($cwd) === $this->projectName) {
             $this->changeDirectory('../');
         }
 
-        $log = ProjectLogger::saveLog($this->newProjectName, "npm-install", $out);
+        $log = $this->saveLog($this->projectName, "npm-install", $out);
 
         $this->console->write($log);
     }

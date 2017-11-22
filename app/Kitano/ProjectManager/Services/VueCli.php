@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Kitano\ProjectManager\Managers;
+namespace App\Kitano\ProjectManager\Services;
 
 use Twig_Environment;
 use Twig_Loader_Array;

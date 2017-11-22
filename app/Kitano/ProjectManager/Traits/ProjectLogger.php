@@ -24,7 +24,7 @@ trait ProjectLogger
      *
      * @return string
      */
-    public static function saveLog($name, $prefix, $output)
+    public function saveLog($name, $prefix, $output)
     {
         $date = date("d_m_Y_H_i_s");
         $file = "{$prefix}_{$name}_{$date}.log";
@@ -55,7 +55,7 @@ trait ProjectLogger
      *
      * @return array
      */
-    public static function getLog()
+    public function getLog()
     {
         return static::$log;
     }
