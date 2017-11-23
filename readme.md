@@ -17,7 +17,7 @@
 GUI provides a pseudo-console to output info about project creation progress.
 Generated output can be set to a minimum (silent) or maximum (verbose).
 
-Vue-Cli is emulated by simply converting Handlebar mustaches into (Twig)[https://twig.symfony.com/] syntax.
+Vue-Cli is emulated by simply converting Handlebar mustaches into [Twig](https://twig.symfony.com/) syntax.
 Available options for the GUI are to be provided by meta data on vue templates (TODO).
 
 
