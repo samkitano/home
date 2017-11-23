@@ -28,6 +28,7 @@ Available options for the GUI are to be provided by meta data on vue templates (
     - Node.js
     - Npm
     - Vue Cli (to be removed, eventually)
+    - IMPORTANT: /Library/Webserver permissions must be set to ALL users (Mac)
 
 ### .env
 
