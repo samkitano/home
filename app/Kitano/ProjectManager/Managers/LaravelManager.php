@@ -14,7 +14,7 @@ class LaravelManager extends ProjectBuilder implements Manager
      */
     public function build()
     {
-        $this->console->write("&#9881; Running composer.");
+        $this->console->write("Running composer...");
 
         $this->setComposerCommand('create-project --ignore-platform-reqs --prefer-dist laravel/laravel');
 
@@ -26,6 +26,13 @@ class LaravelManager extends ProjectBuilder implements Manager
 
         $out = $this->executeComposerCommand();
 
+        if (null === $out) {
+            $this->console->write('Error running composer!', 'error');
+            $this->fail = 'Error running composer!';
+
+            return false;
+        }
+
         $this->console->write("Composer finished. Writing Composer Log...", $this->verbose);
 
         $logged = $this->saveLog($this->projectName, "composer-create-project", $out);
@@ -36,11 +43,17 @@ class LaravelManager extends ProjectBuilder implements Manager
             $this->runNpm();
         }
 
+        if ($this->hasFail()) {
+            return false;
+        }
+
         $this->console->write("Composer finished. Writing Installation Log...", $this->verbose);
 
         $logged = $this->saveLog($this->projectName, "installation", $this->getLog());
 
         $this->console->write($logged);
+
+        return true;
     }
 
     /**
@@ -48,7 +61,7 @@ class LaravelManager extends ProjectBuilder implements Manager
      */
     protected function runNpm()
     {
-        $this->console->write('&#9881; Running npm.');
+        $this->console->write('Running npm...');
 
         $cwd = getcwd();
 
@@ -79,6 +92,13 @@ class LaravelManager extends ProjectBuilder implements Manager
 
         $out = $this->runNpmCommand();
 
+        if (null === $out) {
+            $this->console->write('Error running npm!', 'error');
+            $this->fail = 'Error running npm!';
+
+            return false;
+        }
+
         $this->console->write("NPM finished. Writing Installation Log File", $this->verbose);
 
         $cwd = getcwd();
@@ -90,5 +110,7 @@ class LaravelManager extends ProjectBuilder implements Manager
         $log = $this->saveLog($this->projectName, "npm-install", $out);
 
         $this->console->write($log);
+
+        return true;
     }
 }
