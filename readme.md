@@ -33,7 +33,7 @@ Available options for the GUI are to be provided by meta data on vue templates (
 
 ENTRY | DESCRIPTION | EXAMPLE
 ------|-------------|--------------
-AUTHOR | name and email | " John Doe &lt;doe@example.com&gt;"
+AUTHOR | name and email | " John Doe &lt;doe&#64;example.com&gt;"
 SITES_DIR | path to local projects | "/Users/doe/www/sites"
 LOCAL_USER | local username | doe
 COMPOSER_HOME | path to composer cache | "/Users/doe/.composer"
