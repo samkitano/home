@@ -2,7 +2,7 @@
 
 ## Work in progress
 
-## GUI for localhost projects management built with (Laravel)[https://laravel.com/], (Twig)[https://twig.symfony.com/] and (Vue)[https://vuejs.org/]
+## GUI for localhost projects management built with [Laravel](https://laravel.com/), [Twig](https://twig.symfony.com/) and [Vue](https://vuejs.org/)
 
     - Project Listing
     - Project creation
