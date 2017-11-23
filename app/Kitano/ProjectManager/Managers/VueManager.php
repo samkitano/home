@@ -193,6 +193,6 @@ class VueManager extends ProjectBuilder implements Manager
      */
     protected function getTemplatesPath()
     {
-        return $this->tplPath ?? public_path();
+        return $this->tplPath;
     }
 }
