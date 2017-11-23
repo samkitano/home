@@ -25,9 +25,10 @@ Available options for the GUI are to be provided by meta data on vue templates (
 
     - PHP >=7.0.0
     - Composer
-    - Node.js
-    - Npm
+    - Node.js >=6.0.0
+    - Npm >=5.5.1
     - Vue Cli (to be removed, eventually)
+    - [Pusher](https://pusher.com/) account
     - IMPORTANT: /Library/Webserver permissions must be set to ALL users (Mac)
 
 ### .env
@@ -42,4 +43,4 @@ COMPOSER_LOCATION | path tocomposer executable | "/usr/local/bin/composer.phar"
 NPM_LOCATION | path to npm executable | "/usr/local/bin/npm"
 VUE_LOCATION | path to vue-cli executable | "/usr/local/bin/vue"
 VUE_CLI_PACKAGE_JSON | full path to vue-cli package file | "/usr/local/lib/node_modules/vue-cli/package.json"
-VUE_TEMPLATES | path to downloaded templates; **Must be within Public dir** | "downloads/vuejs-templates"
+VUE_TEMPLATES | path to downloaded templates. **Must be within Public dir** | "downloads/vuejs-templates"
