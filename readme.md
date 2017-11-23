@@ -31,14 +31,14 @@ Available options for the GUI are to be provided by meta data on vue templates (
 
 ### .env
 
-| ENTRY | DESCRIPTION | EXAMPLE |
----------------------------------
-| AUTHOR | name and email | " John Doe <doe@example.com>" |
-| SITES_DIR | path to local projects | "/Users/doe/www/sites" |
-| LOCAL_USER | local username | doe |
-| COMPOSER_HOME | path to composer cache | "/Users/doe/.composer" |
-| COMPOSER_LOCATION | path tocomposer executable | "/usr/local/bin/composer.phar" |
-| NPM_LOCATION | path to npm executable | "/usr/local/bin/npm" |
-| VUE_LOCATION | path to vue-cli executable | "/usr/local/bin/vue" |
-| VUE_CLI_PACKAGE_JSON | full path to vue-cli package file | "/usr/local/lib/node_modules/vue-cli/package.json" |
-| VUE_TEMPLATES | path to downloaded templates; *Must be within Public dir* | "downloads/vuejs-templates" |
+ENTRY | DESCRIPTION | EXAMPLE
+------|-------------|--------------
+AUTHOR | name and email | " John Doe &lt;doe@example.com&gt;"
+SITES_DIR | path to local projects | "/Users/doe/www/sites"
+LOCAL_USER | local username | doe
+COMPOSER_HOME | path to composer cache | "/Users/doe/.composer"
+COMPOSER_LOCATION | path tocomposer executable | "/usr/local/bin/composer.phar"
+NPM_LOCATION | path to npm executable | "/usr/local/bin/npm"
+VUE_LOCATION | path to vue-cli executable | "/usr/local/bin/vue"
+VUE_CLI_PACKAGE_JSON | full path to vue-cli package file | "/usr/local/lib/node_modules/vue-cli/package.json"
+VUE_TEMPLATES | path to downloaded templates; *Must be within Public dir* | "downloads/vuejs-templates"
