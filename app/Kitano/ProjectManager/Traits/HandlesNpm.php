@@ -2,7 +2,7 @@
 
 namespace App\Kitano\ProjectManager\Traits;
 
-trait NpmManager
+trait HandlesNpm
 {
     /**
      * Will hold npm command to execute
