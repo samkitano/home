@@ -2,7 +2,7 @@
 
 namespace App\Kitano\ProjectManager\Traits;
 
-trait ComposerManager
+trait HandlesComposer
 {
     abstract protected function getRequestInput();
 
