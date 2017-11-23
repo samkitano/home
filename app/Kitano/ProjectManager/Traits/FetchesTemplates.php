@@ -7,10 +7,18 @@ use GuzzleHttp\Client;
 use RecursiveIteratorIterator;
 use RecursiveDirectoryIterator;
 
-trait GitDownloader
+trait FetchesTemplates
 {
+    /**
+     * @return string
+     */
     abstract protected function getTemplatesPath();
 
+    /**
+     * @param string $template
+     *
+     * @return bool|string
+     */
     public function fetchTemplate($template)
     {
         if (! $this->hasLocal($template)) {
@@ -29,6 +37,13 @@ trait GitDownloader
         return false;
     }
 
+    /**
+     * Extract zipped template
+     *
+     * @param string $file
+     *
+     * @return bool
+     */
     public function extract($file)
     {
         $path = $this->getTemplatesPath();
@@ -50,29 +65,19 @@ trait GitDownloader
 
         ProjectLogger::addEntry("{ZIP Close: {$file}");
 
-        if (file_exists($dest)) {
-            ProjectLogger::addEntry("{DIR EXISTS. UNLINKING -> {$dest}");
-            unlink($dest);
-        }
-
-        ProjectLogger::addEntry("{REN: {$dest}.'-master' -> {$dest}");
-        rename($dest.'-master', $dest);
-
-        ProjectLogger::addEntry("{CHMOD: {$dest}, 0777");
-        chmod($dest, 0777);
-
-        if (file_exists($dest.DIRECTORY_SEPARATOR.'package.json')) {
-            ProjectLogger::addEntry("{CHMOD: {$dest}/package.json, 0777");
-            chmod($dest.DIRECTORY_SEPARATOR.'package.json', 0777);
-        }
-
-        $this->rChmod($dest.DIRECTORY_SEPARATOR.'template');
+        $this->rename($dest)
+             ->changePermissions($dest);
 
         unlink($file);
 
         return true;
     }
 
+    /**
+     * @param string $dir
+     *
+     * @return void
+     */
     public function rChmod($dir)
     {
         ProjectLogger::addEntry("{RECURSIVE CHMOD: {$dir}, 0777");
@@ -87,17 +92,78 @@ trait GitDownloader
         }
     }
 
+    /**
+     * @param string $template
+     *
+     * @return bool
+     */
     public function hasLocal($template)
     {
         return is_dir($template);
     }
 
+    /**
+     * @param string $repo Repo Url
+     *
+     * @return mixed
+     */
     public function latestVersion($repo)
     {
-        $client = new Client();
-        $res = $client->request('GET', $repo);
-        $data = json_decode($res->getBody(), true);
+        $req = $this->makeRequest($repo);
+        $data = json_decode($req->getBody(), true);
+
+        ProjectLogger::addEntry("{LATEST TEMPLATE VER. -> {$data['dist-tags']['latest']}.");
 
         return $data['dist-tags']['latest'];
+    }
+
+    /**
+     * @param string $url
+     *
+     * @return mixed
+     */
+    protected function makeRequest($url)
+    {
+        $client = new Client();
+
+        return $client->request('GET', $url);
+    }
+
+    /**
+     * @param string $dest
+     *
+     * @return $this
+     */
+    protected function rename($dest)
+    {
+        if (file_exists($dest)) {
+            ProjectLogger::addEntry("{DIR EXISTS. UNLINKING -> {$dest}");
+            unlink($dest);
+        }
+
+        ProjectLogger::addEntry("{REN: {$dest}.'-master' -> {$dest}");
+        rename($dest.'-master', $dest);
+
+        return $this;
+    }
+
+    /**
+     * @param string $dest
+     *
+     * @return $this
+     */
+    protected function changePermissions($dest)
+    {
+        ProjectLogger::addEntry("{CHMOD: {$dest}, 0777");
+        chmod($dest, 0777);
+
+        if (file_exists($dest.DIRECTORY_SEPARATOR.'package.json')) {
+            ProjectLogger::addEntry("{CHMOD: {$dest}/package.json, 0777");
+            chmod($dest.DIRECTORY_SEPARATOR.'package.json', 0777);
+        }
+
+        $this->rChmod($dest.DIRECTORY_SEPARATOR.'template');
+
+        return $this;
     }
 }

@@ -6,11 +6,11 @@ use vierbergenlars\SemVer\version;
 use App\Kitano\ProjectManager\ProjectBuilder;
 use App\Kitano\ProjectManager\Services\VueCli;
 use App\Kitano\ProjectManager\Contracts\Manager;
-use App\Kitano\ProjectManager\Traits\GitDownloader;
+use App\Kitano\ProjectManager\Traits\FetchesTemplates;
 
 class VueManager extends ProjectBuilder implements Manager
 {
-    use GitDownloader;
+    use FetchesTemplates;
 
     protected $template;
 
@@ -41,7 +41,7 @@ class VueManager extends ProjectBuilder implements Manager
         $template = $this->request->input('template');
         $this->template = $template;
 
-        $this->tplPath = public_path('downloads/vuejs-templates');
+        $this->tplPath = env('VUE_TEMPLATES') ? public_path(env('VUE_TEMPLATES')) : public_path();
 
         $this->console->write("Looking for Vue Template '{$template}'.", $this->verbose);
 
@@ -186,8 +186,13 @@ class VueManager extends ProjectBuilder implements Manager
         return $pj->version;
     }
 
+    /**
+     * Get vue-js templates root path
+     *
+     * @return string
+     */
     protected function getTemplatesPath()
     {
-        return $this->tplPath;
+        return $this->tplPath ?? public_path();
     }
 }
