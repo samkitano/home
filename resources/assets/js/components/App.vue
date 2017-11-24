@@ -468,12 +468,14 @@
 
                 axios
                     // firstly, we check if project can be created at all
+                    // TODO: get vue config options from meta
                     .get(`can-create-project/${this.fields.name}`)
                     .then((r) => { // then either we start creating project for real...
                         this.output.push(r.data.message)
                         this.startCreating()
                     })
                     .catch((e) => { // ...or miserably fail
+                    // TODO: send ProjectManagerExceptions to console. Swal other errors
                         if (e.response.data.message === `Project '${this.fields.name}' already exists!`) {
                             this.setInvalidProject()
                         } else {
