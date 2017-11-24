@@ -6,9 +6,10 @@ use Twig_Environment;
 use Twig_Loader_Array;
 use RecursiveIteratorIterator;
 use RecursiveDirectoryIterator;
+use App\Kitano\ProjectManager\Managers\VueManager;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 
-class VueCli
+class VueCli extends VueManager
 {
     /** Regex for finding mustaches */
     const MUSTACHE_PATTERN = '/{{(.*?)}}/';
@@ -23,16 +24,10 @@ class VueCli
     protected $currentFile;
 
     /** @var array */
-    protected $options;
-
-    /** @var string */
-    protected $template;
-
-    /** @var array */
     protected $toCopy = [];
 
     /** @var array */
-    protected $rejectExtensions = [
+    protected $skipExtensions = [
         'jpg',
         'jpeg',
         'gif',
@@ -42,30 +37,31 @@ class VueCli
         'md',
     ];
 
-    /**
-     * @param string $template
-     * @param array  $options
-     */
-    public function __construct($template, $options = [])
-    {
-        $this->template = $template;
-        $this->options = $options;
-    }
+    protected $results = [];
 
     /**
      * Iterate Vue Cli Template files
+     *
+     * @return array
      */
-    public function build()
-    {
-        $templatePath = public_path("downloads/vuejs-templates/{$this->template}/template");
-        $dir_iterator = new RecursiveDirectoryIterator($templatePath, RecursiveDirectoryIterator::SKIP_DOTS);
-        $iterator = new RecursiveIteratorIterator($dir_iterator);
+    public function make()
+    {//$this->template='webpack';$this->projectName='test';
+        $this->console->write("Converting Template '{$this->template}'...");
+
+        $templatePath = "{$this->tplPath}/{$this->template}/template";
+
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator(
+                $templatePath,
+                RecursiveDirectoryIterator::SKIP_DOTS
+            )
+        );
 
         foreach ($iterator as $this->currentFile) {
             $this->execute();
         }
-
-        // TODO: return
+//dd($this->results);
+        return $this->results;
     }
 
     /**
@@ -80,7 +76,10 @@ class VueCli
         $this->currentContent = str_replace(PHP_EOL, '_NEW_LINE_', $fc);
 
         $ext = $this->currentFile->getExtension();
-        $copy = in_array($ext, $this->rejectExtensions) || ! $this->hasMustaches($this->currentContent);
+        $copy = in_array($ext, $this->skipExtensions) || ! $this->hasMustaches($this->currentContent);
+
+        $this->compiled['name'] = basename($this->currentFile);
+        $this->compiled['path'] = $this->currentFile->getPath();
 
         if ($copy) {
             $this->toCopy[] = $this->currentFile;
@@ -88,27 +87,57 @@ class VueCli
             return $this;
         }
 
-        $this->compiled['name'] = basename($this->currentFile);
-        $this->compiled['path'] = $this->currentFile->getPath();
-        $this->compiled['raw'] = $fc;
-        $this->compiled['inlined'] = $this->currentContent;
-
         $this->twiggify()
              ->render()
              ->fixLineBreaks()
-             ->createFiles();
+             ->addResults();
 
         return $this;
     }
 
     /**
-     * @TODO: implement metod
+     * Populate results array
      *
      * @return $this
      */
-    protected function createFiles()
+    protected function addResults()
     {
+        $this->results['create'][] = [
+            'file' => $this->compiled['name'],
+            'content' => $this->compiled['rendered'],
+            'src' => $this->compiled['path'],
+            'dest' => $this->getDestinationPath(),
+        ];
+
+        foreach ($this->toCopy as $f) {
+            $p = $f->getPath();
+
+            $this->results['copy'][] = [
+                'file' => basename($f),
+                'src' => $p,
+                'dest' => $this->getDestinationPath($p),
+            ];
+        }
+
         return $this;
+    }
+
+    /**
+     * Get file destination path
+     *
+     * @param null|string $path Path to file
+     *
+     * @return mixed
+     */
+    protected function getDestinationPath($path = null)
+    {
+        $src = $path ?? $this->compiled['path'];
+
+        return str_replace(
+            $this->tplPath.DIRECTORY_SEPARATOR.$this->template.DIRECTORY_SEPARATOR.'template',
+            $this->dir.DIRECTORY_SEPARATOR.$this->projectName,
+            $src
+        );
     }
 
     /**

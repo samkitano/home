@@ -7,12 +7,11 @@ use App\Kitano\ProjectManager\ProjectBuilder;
 use App\Kitano\ProjectManager\Services\VueCli;
 use App\Kitano\ProjectManager\Contracts\Manager;
 use App\Kitano\ProjectManager\Traits\FetchesTemplates;
+use App\Kitano\ProjectManager\Exceptions\ProjectManagerException;
 
 class VueManager extends ProjectBuilder implements Manager
 {
     use FetchesTemplates;
-
-    protected $template;
 
     /**
      * Vue-Cli Templates Repository urls
@@ -28,75 +27,129 @@ class VueManager extends ProjectBuilder implements Manager
         'simple' => 'https://github.com/vuejs-templates/simple',
     ];
 
-    /**
-     * Path to local vue-cli templates
-     *
-     * @var string
-     */
-    protected $tplPath;
+    protected $files;
 
-
-    public function build()
-    {
-        $template = $this->request->input('template');
-        $this->template = $template;
-
-        $this->tplPath = env('VUE_TEMPLATES') ? public_path(env('VUE_TEMPLATES')) : public_path();
-
-        $this->console->write("Looking for Vue Template '{$template}'.", $this->verbose);
-
-        if (! $this->findTemplate()) {
-            return false;
-        }
-
-        //TODO: call vue cli
-
-        return true;
-    }
 
     /**
-     * Download required template
+     * Build the project
      *
      * @return bool
      */
+    public function build()
+    {
+        $this->findTemplate()
+             ->setConfig();
+
+        $converter = new VueCli($this->request);
+
+        $this->files = $converter->make();
+
+        $this->buildFiles();
+
+        if ($this->runNpm) {
+            $this->runNpm();
+        }
+    }
+
+    /**
+     * Distribute generated content
+     */
+    protected function buildFiles()
+    {
+        $this->console->write("Building files with Template '{$this->template}'...");
+
+        if (isset($this->files['copy'])) {
+            foreach ($this->files['copy'] as $file) {
+                if (! is_dir($file['dest'])) {
+                    mkdir($file['dest'], 0777, true);
+                }
+
+                copy(
+                    $file['src'].DIRECTORY_SEPARATOR.$file['file'],
+                    $file['dest'].DIRECTORY_SEPARATOR.$file['file']
+                );
+            }
+        }
+
+        if (isset($this->files['create'])) {
+            foreach ($this->files['create'] as $file) {
+                if (! is_dir($file['dest'])) {
+                    mkdir($file['dest'], 0777, true);
+                }
+
+                file_put_contents($file['dest'].DIRECTORY_SEPARATOR.$file['file'], $file['content']);
+            }
+        }
+    }
+
+    /**
+     * Get required template from file system
+     * Download from github repo if necessary
+     *
+     * @return $this
+     */
     protected function findTemplate()
     {
+        $this->console->write("Looking for Vue Template '{$this->template}'.", $this->verbose);
+
         $templatePath = $this->tplPath.DIRECTORY_SEPARATOR.$this->template;
         $exists = $this->templateExistsLocally($templatePath);
         $v = $exists ? $this->getTemplateVersions() : false;
         $match = $v && $this->compareVersions($v);
 
         if (! $exists || ($exists && ! $match)) {
-
             if (! $match) {
                 $this->console->write('New template version available.', $this->verbose);
             }
 
             $downloaded = $this->downloadTemplate($this->template);
 
-            if (! $downloaded) {
-                return false;
-            }
-
             $this->console->write('Download complete. Extracting '.$downloaded, $this->verbose);
 
-            $extracted = $this->extractTemplate($downloaded);
-
-            if (! $extracted) {
-                return false;
-            }
+            $this->extractTemplate($downloaded);
         }
 
         $this->console->write('Template Ready!');
 
-        return true;
+        return $this;
     }
 
+    protected function runNpm()
+    {
+        // TODO
+    }
+
+    protected function setConfig()
+    {
+        $this->console->write("Preparing Build Configuration...", $this->verbose);
+
+        $this->options['private'] = isset($this->private) ? $this->private : true;
+        $this->options['license'] = isset($this->license) ? $this->license : 'MIT';
+
+        $cfg = implode(PHP_EOL, $this->options);
+        $this->console->write("Configuration: {$cfg}", $this->verbose);
+    }
+
+    /**
+     * Check if template exists
+     *
+     * @param string $fullPath
+     *
+     * @return bool
+     */
     protected function templateExistsLocally($fullPath)
     {
         return is_dir($fullPath);
     }
 
+    /**
+     * Download selected template
+     *
+     * @param string $template Template Name
+     *
+     * @return string
+     * @throws ProjectManagerException
+     */
     protected function downloadTemplate($template)
     {
         $this->console->write('Downloading template...');
@@ -104,77 +157,91 @@ class VueManager extends ProjectBuilder implements Manager
         $download = $this->fetchTemplate($template);
 
         if (! $download) {
-            $this->console->write('Error downloading template!', 'error');
-            $this->fail = 'Error downloading template!';
-
-            return false;
+            throw new ProjectManagerException("Error downloading template '{$template}'!");
         }
 
         return $download;
     }
 
-    protected function extractTemplate($dld)
+    /**
+     * Extracts downloaded template
+     *
+     * @param string $downloaded
+     *
+     * @return $this
+     * @throws ProjectManagerException
+     */
+    protected function extractTemplate($downloaded)
     {
-        $this->console->write("Extracting files from {$dld}");
+        $this->console->write("Extracting files from '{$downloaded}'");
 
-        $extracted = $this->extract($dld);
+        $extracted = $this->extract($downloaded);
 
         if (! $extracted) {
-            $this->console->write('Error extracting template!', 'error');
-            $this->fail = 'Error extracting template!';
-
-            return false;
+            throw new ProjectManagerException("Error extracting '{$downloaded}'!");
         }
 
-        $this->console->write($dld.' extracted!');
+        $this->console->write($downloaded.' extracted!');
 
-        return true;
+        return $this;
     }
 
+    /**
+     * Get both local and remote template versions
+     *
+     * @return array
+     * @throws ProjectManagerException
+     */
     protected function getTemplateVersions()
     {
         $local = $this->getLocalTemplateVersion();
 
         if (! $local) {
-            $msg = "{$this->template} not found. Unable to retrieve version.";
-            $this->console->write($msg, 'error');
-            $this->fail = $msg;
-
-            return false;
+            throw new ProjectManagerException("Template '{$this->template}' not found. Unable to retrieve version.");
         }
 
         if ($local === '') {
-            $msg = "Error fetching local version for template {$this->template}";
-            $this->console->write($msg, 'error');
-            $this->fail = $msg;
-
-            return false;
+            throw new ProjectManagerException("Error fetching local version for template '{$this->template}'.");
         }
 
-        $remote = $this->latestVersion($this->templateRepos[$this->template]);
+        $repo = $this->templateRepos[$this->template];
+        $this->console->write("Repo is '{$repo}'", $this->verbose);
+        $remote = $this->latestVersion($this->template);
+
+        $this->console->write("Remote version is '{$remote}'", $this->verbose);
 
         if ($remote === null) {
-            $msg =  "Error fetching Gthub version for template {$this->template}";
-            $this->console->write($msg, 'error');
-            $this->fail = $msg;
-
-            return false;
+            throw new ProjectManagerException("Error fetching template '{$this->template}' latest version from Gthub.");
         }
 
         return [$local, $remote];
     }
 
+    /**
+     * Compare template versions
+     *
+     * @param array $versions Local|Remote
+     *
+     * @return bool
+     */
     protected function compareVersions($versions)
     {
         return version::eq($versions[0], $versions[1]);
     }
 
+    /**
+     * Get local template version
+     *
+     * @return string
+     * @throws ProjectManagerException
+     */
     protected function getLocalTemplateVersion()
     {
-        $file = $this->tplPath.$this->projectType.DIRECTORY_SEPARATOR.'package.json';
+        $file = $this->tplPath.DIRECTORY_SEPARATOR.$this->template.DIRECTORY_SEPARATOR.'package.json';
+        $this->console->write("Extracting version from '{$file}'", $this->verbose);
 
         if (! file_exists($file)) {
-            return false;
+            throw new ProjectManagerException("Can not find '{$file}'");
         }
 
         $pj = json_decode(file_get_contents($file));
@@ -182,6 +249,8 @@ class VueManager extends ProjectBuilder implements Manager
         if (! isset($pj->version)) {
             return '';
         }
+
+        $this->console->write("Local Version is '{$pj->version}'", $this->verbose);
 
         return $pj->version;
     }

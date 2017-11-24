@@ -3,15 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Kitano\ProjectManager\VueTemplate;
-use App\Kitano\ProjectManager\VueCli;
+use App\Kitano\ProjectManager\Services\VueCli;
+use Illuminate\Http\Request;
 
 class TestController extends Controller
 {
     public function index()
     {
+        $r = new Request();
+
+        $r->template = 'webpack';
+        $r->options = [
+            'name' => 'Sammy', 'router'=>true, 'unit'=>true, 'runner' => 'karma',
+        ];
         //dd(VueCli::getMeta('webpack'));
-        $v = new VueCli('webpack', ['name' => 'Sammy', 'router'=>true, 'unit'=>true, 'runner' => 'karma']);
-        $v->build();
+        $v = new VueCli($r);
+        $v->make();
     }
 
     /*public function index()

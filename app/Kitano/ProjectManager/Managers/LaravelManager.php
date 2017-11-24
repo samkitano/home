@@ -4,6 +4,7 @@ namespace App\Kitano\ProjectManager\Managers;
 
 use App\Kitano\ProjectManager\ProjectBuilder;
 use App\Kitano\ProjectManager\Contracts\Manager;
+use App\Kitano\ProjectManager\Exceptions\ProjectManagerException;
 
 class LaravelManager extends ProjectBuilder implements Manager
 {
@@ -27,10 +28,7 @@ class LaravelManager extends ProjectBuilder implements Manager
         $out = $this->executeComposerCommand();
 
         if (null === $out) {
-            $this->console->write('Error running composer!', 'error');
-            $this->fail = 'Error running composer!';
-
-            return false;
+            throw new ProjectManagerException('Error running composer!');
         }
 
         $this->console->write("Composer finished. Writing Composer Log...", $this->verbose);
@@ -41,10 +39,6 @@ class LaravelManager extends ProjectBuilder implements Manager
 
         if ($this->runNpm) {
             $this->runNpm();
-        }
-
-        if ($this->hasFail()) {
-            return false;
         }
 
         $this->console->write("Composer finished. Writing Installation Log...", $this->verbose);
@@ -93,10 +87,7 @@ class LaravelManager extends ProjectBuilder implements Manager
         $out = $this->runNpmCommand();
 
         if (null === $out) {
-            $this->console->write('Error running npm!', 'error');
-            $this->fail = 'Error running npm!';
-
-            return false;
+            throw new ProjectManagerException('Error running npm!');
         }
 
         $this->console->write("NPM finished. Writing Installation Log File", $this->verbose);

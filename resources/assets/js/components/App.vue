@@ -244,6 +244,7 @@
                             :options="vueTplOptions"></b-form-select>
                     </b-form-group>
 
+                    <!-- TODO: values = runtime|standalone -->
                     <div v-if="fields.template === 'webpack'">
                         <b-form-checkbox
                             id="build"

@@ -4,12 +4,6 @@ namespace App\Kitano\ProjectManager\Traits;
 
 use Carbon\Carbon;
 
-/**
- * Class ProjectLogger
- * @package App\Kitano\ProjectManager\Traits
- *
- * Handles Project Manager Logs
- */
 trait ProjectLogger
 {
     /** @var array */
@@ -58,5 +52,10 @@ trait ProjectLogger
     public function getLog()
     {
         return static::$log;
+    }
+
+    public static function saveErrorLog($where)
+    {
+        file_put_contents($where.DIRECTORY_SEPARATOR.'error.log', static::$log);
     }
 }

@@ -3,12 +3,12 @@
 namespace App\Kitano\ProjectManager;
 
 use Illuminate\Http\Request;
-use App\Kitano\ProjectManager\Traits\NpmManager;
-use App\Kitano\ProjectManager\Traits\ComposerManager;
+use App\Kitano\ProjectManager\Traits\HandlesNpm;
+use App\Kitano\ProjectManager\Traits\HandlesComposer;
 
 class ProjectsBrowser
 {
-    use  ComposerManager, NpmManager;
+    use  HandlesNpm, HandlesComposer;
 
     /**
      * Path to projects folder
@@ -36,6 +36,9 @@ class ProjectsBrowser
     protected $tld = 'dev';
 
 
+    /**
+     * @param Request $request
+     */
     public function __construct(Request $request)
     {
         $this->request = $request;
@@ -132,6 +135,9 @@ class ProjectsBrowser
         return $projects;
     }
 
+    /**
+     * @return array|string
+     */
     protected function getRequestInput()
     {
         return $this->request->input();

@@ -4,6 +4,9 @@ namespace App\Kitano\ProjectManager\Traits;
 
 trait HandlesComposer
 {
+    /**
+     * @return mixed
+     */
     abstract protected function getRequestInput();
 
     /**
@@ -66,7 +69,8 @@ trait HandlesComposer
      *
      * @return string|null
      */
-    protected function getComposerVersion() {
+    protected function getComposerVersion()
+    {
         return isset($this->composer['version']) ? $this->composer['version'] : null;
     }
 

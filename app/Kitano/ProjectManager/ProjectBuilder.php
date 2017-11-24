@@ -3,21 +3,18 @@
 namespace App\Kitano\ProjectManager;
 
 use Illuminate\Http\Request;
-//use App\Kitano\ProjectManager\Managers\VueCli;
-use App\Kitano\ProjectManager\Traits\NpmManager;
+use App\Kitano\ProjectManager\Traits\HandlesNpm;
 use App\Kitano\ProjectManager\Traits\ProjectLogger;
-//use App\Kitano\ProjectManager\Traits\VueCliVersion;
 use App\Kitano\ProjectManager\PseudoConsole\Console;
-use App\Kitano\ProjectManager\Traits\ComposerManager;
-//use App\Kitano\ProjectManager\Managers\LaravelManager;
-//use App\Kitano\ProjectManager\ProjectsBrowser;
+use App\Kitano\ProjectManager\Traits\HandlesComposer;
+use App\Kitano\ProjectManager\Exceptions\ProjectManagerException;
 
+/**
+ * @TODO: Not happy with error system. Refactor.
+ */
 class ProjectBuilder
 {
-    use ComposerManager, NpmManager, ProjectLogger;
-
-    /** @var string */
-    protected $author;
+    use HandlesComposer, HandlesNpm, ProjectLogger;
 
     /**
      * Will hold base dir from $dir path
@@ -38,13 +35,6 @@ class ProjectBuilder
     protected $dir;
 
     /**
-     * Error carrier
-     *
-     * @var null|string
-     */
-    protected $fail = null;
-
-    /**
      * Local user name
      * set up in .env
      *
@@ -52,6 +42,7 @@ class ProjectBuilder
      */
     protected $localUser = '';
 
+    /** @var array */
     protected $options;
 
     /**
@@ -61,6 +52,7 @@ class ProjectBuilder
      */
     protected $projectName;
 
+    /** @var string */
     protected $projectType;
 
     /**
@@ -70,42 +62,62 @@ class ProjectBuilder
      */
     protected $newProjectRunNpm = true;
 
+    protected $projectDir;
+
     /** @var \Illuminate\Http\Request $request */
     protected $request;
 
+    /** @var bool */
     protected $runNpm;
+
+    /** @var string */
+    protected $template;
+
+    /**
+     * Path to local vue-cli templates
+     *
+     * @var string
+     */
+    protected $tplPath;
 
     /** @var bool */
     protected $verbose = false;
 
 
+    /**
+     * @param Request $request
+     */
     public function __construct(Request $request)
     {
         $this->request = $request;
+
         $this->projectName = $request->input('name');
         $this->projectType = $request->input('type');
         $this->dir = env('SITES_DIR');
+        $this->projectDir = env('SITES_DIR').DIRECTORY_SEPARATOR.$request->input('name');
         $this->baseDir = basename(env('SITES_DIR'));
         $this->localUser = env('LOCAL_USER', getenv("username"));
         $this->composerHome = env('COMPOSER_HOME', null);
         $this->composerLocation = env('COMPOSER_LOCATION', null);
         $this->vueLocation = env('VUE_LOCATION', null);
-        $this->author = env('AUTHOR', 'Me');
         $this->verbose = $this->request->has('_verbose');
         $this->console = new Console();
-        $this->runNpm = $request->input('runNpm');
+        $this->runNpm = $request->has('runNpm') && $request->input('runNpm');
+        $this->template = $request->input('template');
+        $this->tplPath = env('VUE_TEMPLATES') ? public_path(env('VUE_TEMPLATES')) : public_path();
 
         $this->options = array_except(
             $this->request->input(),
-            ['_verbose', '_method', 'name', 'type', 'runNpm']
+            ['_verbose', '_method'/*, 'name'*/, 'type', 'runNpm', 'template']
         );
-    }
 
+        $this->options['author'] = env('AUTHOR', 'Me');
+    }
 
     /**
      * Check if a project can be created
      *
-     * @param $name
+     * @param string $name New Project Name
      *
      * @return array
      */
@@ -121,7 +133,7 @@ class ProjectBuilder
         if (! is_writable($this->dir)) {
             return [
                 'status' => 422,
-                'message' => "{$this->dir} is not writable",
+                'message' => "{$this->dir} is not writable!",
             ];
         }
 
@@ -135,16 +147,14 @@ class ProjectBuilder
      * Create the new project
      *
      * @return array
+     * @throws ProjectManagerException
      */
     public function create()
     {
         $manager = __NAMESPACE__."\\Managers\\{$this->projectType}Manager";
 
         if (! class_exists($manager)) {
-            return [
-                'status' => 422,
-                'message' => "{$this->projectType}Manager does not exist!",
-            ];
+            throw new ProjectManagerException("{$this->projectType}Manager does not exist!");
         }
 
         $builder = new $manager($this->request);
@@ -154,13 +164,6 @@ class ProjectBuilder
             : $this->console->write("Building {$this->projectType} project '{$this->projectName}'.");
 
         call_user_func([$builder, 'build']);
-
-        if ($this->hasFail()) {
-            return [
-                'status' => 422,
-                'message' => $this->fail,
-            ];
-        }
 
         $this->console->write("{$this->projectType} Project '{$this->projectName}' Created!");
         $this->console->write("DONE!", 'success');
@@ -190,8 +193,8 @@ class ProjectBuilder
     /**
      * Copy files
      *
-     * @param $src
-     * @param $dst
+     * @param string $src Source
+     * @param string $dst Destination
      */
     protected function copyFiles($src, $dst)
     {
@@ -204,11 +207,11 @@ class ProjectBuilder
                 if (is_dir($src.DIRECTORY_SEPARATOR.$file)) {
                     $this->copyFiles($src.DIRECTORY_SEPARATOR.$file, $dst.DIRECTORY_SEPARATOR.$file);
                 }
-                else { //TODO remove
+                else {
                     $this->console->write("Copying ".$file, $this->verbose);
 
                     copy($src.DIRECTORY_SEPARATOR.$file, $dst.DIRECTORY_SEPARATOR.$file);
-                }// remove
+                }
             }
         }
 
@@ -218,8 +221,8 @@ class ProjectBuilder
     /**
      * Write compiled files
      *
-     * @param $file
-     * @param $content
+     * @param string $file
+     * @param string $content
      */
     protected function writeFile($file, $content)
     {
@@ -227,31 +230,6 @@ class ProjectBuilder
 
         file_put_contents($file, $content);
     }
-
-    /**
-     * @return null|string
-     */
-    protected function getFail()
-    {
-        return $this->fail;
-    }
-
-    /**
-     * @return bool
-     */
-    protected function hasFail()
-    {
-        return isset($this->fail);
-    }
-
-    /**
-     * @param string $failMessage
-     */
-    protected function setFail($failMessage)
-    {
-        $this->fail = $failMessage;
-    }
-
 
     /**
      * Initial greeting when creating new project
@@ -272,21 +250,33 @@ class ProjectBuilder
         $this->console->write("Building {$this->projectType} project '{$this->projectName}'.");
     }
 
+    /**
+     * @return array|string
+     */
     protected function getRequestInput()
     {
         return $this->request->input();
     }
 
+    /**
+     * @return string
+     */
     protected function getProjectName()
     {
         return $this->projectName;
     }
 
+    /**
+     * @return bool
+     */
     protected function getVerbosity()
     {
         return $this->verbose;
     }
 
+    /**
+     * @return string
+     */
     protected function getLocalUser()
     {
         return $this->localUser;

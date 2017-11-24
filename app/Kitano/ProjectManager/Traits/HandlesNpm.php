@@ -61,6 +61,13 @@ trait HandlesNpm
             : null;
     }
 
+    /**
+     * Set Vue-Cli command
+     *
+     * @deprecated
+     *
+     * @param string $command
+     */
     protected function setVueCliCommand($command)
     {
         $this->vueCommand = $command;

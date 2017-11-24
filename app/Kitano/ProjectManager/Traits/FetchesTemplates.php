@@ -103,18 +103,18 @@ trait FetchesTemplates
     }
 
     /**
-     * @param string $repo Repo Url
+     * @param string $repo Repo Name
      *
      * @return mixed
      */
     public function latestVersion($repo)
     {
-        $req = $this->makeRequest($repo);
+        $req = $this->makeRequest('https://api.github.com/repos/vuejs-templates/'.$repo.'/releases/latest');
         $data = json_decode($req->getBody(), true);
 
-        ProjectLogger::addEntry("{LATEST TEMPLATE VER. -> {$data['dist-tags']['latest']}.");
+        ProjectLogger::addEntry("{LATEST TEMPLATE VER. -> {$data['tag_name']}.");
 
-        return $data['dist-tags']['latest'];
+        return $data['tag_name'];
     }
 
     /**
