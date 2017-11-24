@@ -54,6 +54,11 @@ trait ProjectLogger
         return static::$log;
     }
 
+    /**
+     * Save an error log
+     *
+     * @param string $where Destination path
+     */
     public static function saveErrorLog($where)
     {
         file_put_contents($where.DIRECTORY_SEPARATOR.'error.log', static::$log);
