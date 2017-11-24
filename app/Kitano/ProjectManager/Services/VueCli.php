@@ -45,7 +45,7 @@ class VueCli extends VueManager
      * @return array
      */
     public function make()
-    {//$this->template='webpack';$this->projectName='test';
+    {
         $this->console->write("Converting Template '{$this->template}'...");
 
         $templatePath = "{$this->tplPath}/{$this->template}/template";
@@ -60,7 +60,7 @@ class VueCli extends VueManager
         foreach ($iterator as $this->currentFile) {
             $this->execute();
         }
-//dd($this->results);
+
         return $this->results;
     }
 
