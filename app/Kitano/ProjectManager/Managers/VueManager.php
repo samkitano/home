@@ -32,7 +32,7 @@ class VueManager extends ProjectBuilder implements Manager
 
     /**
      * Build the project
-     *
+     * @TODO: save log
      * @return bool
      */
     public function build()
@@ -119,6 +119,9 @@ class VueManager extends ProjectBuilder implements Manager
         // TODO
     }
 
+    /**
+     * Set build configuration
+     */
     protected function setConfig()
     {
         $this->console->write("Preparing Build Configuration...", $this->verbose);
@@ -173,7 +176,7 @@ class VueManager extends ProjectBuilder implements Manager
      */
     protected function extractTemplate($downloaded)
     {
-        $this->console->write("Extracting files from '{$downloaded}'");
+        $this->console->write("Extracting files from '{$downloaded}'", $this->verbose);
 
         $extracted = $this->extract($downloaded);
 
@@ -181,7 +184,7 @@ class VueManager extends ProjectBuilder implements Manager
             throw new ProjectManagerException("Error extracting '{$downloaded}'!");
         }
 
-        $this->console->write($downloaded.' extracted!');
+        $this->console->write($downloaded.' extracted!', $this->verbose);
 
         return $this;
     }
