@@ -3,10 +3,12 @@ window.axios = require('axios');
 
 import BootstrapVue from 'bootstrap-vue';
 import VueSweetalert2 from 'vue-sweetalert2';
-import Echo from "laravel-echo"
-import 'babel-polyfill'
+import Echo from "laravel-echo";
+import 'babel-polyfill';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
+
+window.Bus = new Vue();
 
 /**
  * We'll load the axios HTTP library which allows us to easily issue requests
@@ -62,17 +64,19 @@ Vue.component('app', require('./components/App.vue'));
  * waiting for new release
  * see: https://github.com/bootstrap-vue/bootstrap-vue/issues/1201
  */
-let originalVueComponent = Vue.component
+let originalVueComponent = Vue.component;
+
 Vue.component = function(name, definition) {
   if (name === 'bFormCheckboxGroup' || name === 'bCheckboxGroup' ||
       name === 'bCheckGroup' || name === 'bFormRadioGroup') {
-    definition.components = {bFormCheckbox: definition.components[0]}
+    definition.components = { bFormCheckbox: definition.components[0] };
   }
-  originalVueComponent.apply(this, [name, definition])
-}
-Vue.use(BootstrapVue)
-Vue.component = originalVueComponent
 
+  originalVueComponent.apply(this, [name, definition]);
+}
+
+Vue.use(BootstrapVue);
+Vue.component = originalVueComponent;
 
 const app = new Vue({
     el: '#app'
