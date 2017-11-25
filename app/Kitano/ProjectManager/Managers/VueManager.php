@@ -7,11 +7,23 @@ use App\Kitano\ProjectManager\ProjectBuilder;
 use App\Kitano\ProjectManager\Services\VueCli;
 use App\Kitano\ProjectManager\Contracts\Manager;
 use App\Kitano\ProjectManager\Traits\FetchesTemplates;
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use App\Kitano\ProjectManager\Exceptions\ProjectManagerException;
 
 class VueManager extends ProjectBuilder implements Manager
 {
     use FetchesTemplates;
+
+    protected static $prompts = [];
+
+    protected static $templateNames = [
+        'webpack',
+        'webpack-simple',
+        'browserify',
+        'browserify-simple',
+        'pwa',
+        'simple',
+    ];
 
     /**
      * Vue-Cli Templates Repository urls
@@ -266,5 +278,50 @@ class VueManager extends ProjectBuilder implements Manager
     protected function getTemplatesPath()
     {
         return $this->tplPath;
+    }
+
+    /**
+     * @param string $template
+     *
+     * @return array
+     * @throws FileNotFoundException
+     */
+    public static function getPrompts($template)
+    {
+        $meta = static::getMeta($template);
+
+        if (! $meta) {
+            return false;
+        }
+
+        return array_merge($meta['prompts'], static::$prompts);
+    }
+
+    /**
+     * @return array
+     */
+    public static function getProjectTemplates()
+    {
+        return static::$templateNames;
+    }
+
+    /**
+     * Get template meta
+     *
+     * @param string $template
+     *
+     * @return string JSON
+     * @throws FileNotFoundException
+     */
+    public static function getMeta($template)
+    {
+        $metajs = public_path(env('VUE_TEMPLATES'))."/{$template}/meta.js";
+        $metajson = public_path(env('VUE_TEMPLATES'))."/{$template}/meta.json";
+
+        if (! file_exists($metajs) && ! file_exists($metajson)) {
+            return false;
+        }
+
+        return jsonDecodeMetaFile(file_get_contents(file_exists($metajson) ? $metajson : $metajs));
     }
 }
