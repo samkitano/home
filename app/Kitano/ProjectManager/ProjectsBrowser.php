@@ -5,6 +5,7 @@ namespace App\Kitano\ProjectManager;
 use Illuminate\Http\Request;
 use App\Kitano\ProjectManager\Traits\HandlesNpm;
 use App\Kitano\ProjectManager\Traits\HandlesComposer;
+use Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException;
 
 class ProjectsBrowser
 {
@@ -55,6 +56,7 @@ class ProjectsBrowser
         return [
             'sites' => $this->iterateProjects(),
             'tools' => UserTools::$tools,
+            'managers' =>$this->getManagers(),
             'location' => $this->dir,
         ];
     }
@@ -85,6 +87,42 @@ class ProjectsBrowser
         $t['storagePermissions'] = $t['type'] === 'laravel' ? $this->getStoragePermissions($folder) : null;
 
         return $t;
+    }
+
+    /**
+     * List existing managers
+     *
+     * @return array
+     */
+    protected function getManagers()
+    {
+        $res = [];
+
+        foreach (glob(app_path('Kitano/ProjectManager/Managers/*.php')) as $manager) {
+            $m = basename($manager);
+            $name = substr($m, 0, strpos($m, 'Manager'));
+            $t['name'] = $name;
+            $t['templates'] = $this->getManagerTemplates($name);
+            $res[] = $t;
+        }
+
+        return $res;
+    }
+
+    protected function getManagerTemplates($class)
+    {
+        $manager = __NAMESPACE__."\\Managers\\{$class}Manager";
+
+        if (! class_exists($manager)) {
+            throw new FileNotFoundException("{$manager} Class does not exist!");
+        }
+
+        return call_user_func($manager.'::getProjectTemplates');
+    }
+
+    protected function getTemplateOptions($class)
+    {
+
     }
 
     /**
