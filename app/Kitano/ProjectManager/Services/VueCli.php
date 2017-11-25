@@ -216,24 +216,4 @@ class VueCli extends VueManager
     {
         return strpos($str, MustacheHandler::OPEN_MUSTACHE) !== false;
     }
-
-    /**
-     * Get template meta
-     *
-     * @param string $template
-     *
-     * @return string JSON
-     * @throws FileNotFoundException
-     */
-    public static function getMeta($template)
-    {
-        $metajs = public_path("downloads/vuejs-templates/{$template}/meta.js");
-        $metajson = public_path("downloads/vuejs-templates/{$template}/meta.json");
-
-        if (! file_exists($metajs) && ! file_exists($metajson)) {
-            throw new FileNotFoundException("Template {$template} not found.");
-        }
-
-        return jsonDecodeMetaFile(file_get_contents(file_exists($metajson) ? $metajson : $metajs));
-    }
 }
