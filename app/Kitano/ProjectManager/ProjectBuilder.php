@@ -9,9 +9,6 @@ use App\Kitano\ProjectManager\PseudoConsole\Console;
 use App\Kitano\ProjectManager\Traits\HandlesComposer;
 use App\Kitano\ProjectManager\Exceptions\ProjectManagerException;
 
-/**
- * @TODO: Not happy with error system. Refactor.
- */
 class ProjectBuilder
 {
     use HandlesComposer, HandlesNpm, ProjectLogger;
@@ -86,6 +83,7 @@ class ProjectBuilder
 
     /**
      * @param Request $request
+     * @TODO: overbloated. refactor.
      */
     public function __construct(Request $request)
     {
@@ -193,6 +191,7 @@ class ProjectBuilder
     /**
      * Copy files
      *
+     * @deprecated
      * @param string $src Source
      * @param string $dst Destination
      */
