@@ -8,6 +8,14 @@ use App\Kitano\ProjectManager\Exceptions\ProjectManagerException;
 
 class LaravelManager extends ProjectBuilder implements Manager
 {
+    protected static $prompts = [
+        'runNpm' => [
+            'type' => 'confirm',
+            'message' => 'Run npm after install?'
+        ]
+    ];
+
+
     /**
      * Create a laravel Project
      *
@@ -103,5 +111,23 @@ class LaravelManager extends ProjectBuilder implements Manager
         $this->console->write($log);
 
         return true;
+    }
+
+    /**
+     * @param string $template
+     *
+     * @return array
+     */
+    public static function getPrompts($template)
+    {
+        return static::$prompts;
+    }
+
+    /**
+     * @return array
+     */
+    public static function getProjectTemplates()
+    {
+        return [];
     }
 }
