@@ -120,11 +120,6 @@ class ProjectsBrowser
         return call_user_func($manager.'::getProjectTemplates');
     }
 
-    protected function getTemplateOptions($class)
-    {
-
-    }
-
     /**
      * Guess project type from composer.json
      *

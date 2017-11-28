@@ -4,6 +4,7 @@ window.axios = require('axios');
 import BootstrapVue from 'bootstrap-vue';
 import VueSweetalert2 from 'vue-sweetalert2';
 import Echo from "laravel-echo";
+
 import 'babel-polyfill';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
@@ -77,6 +78,8 @@ Vue.component = function(name, definition) {
 
 Vue.use(BootstrapVue);
 Vue.component = originalVueComponent;
+
+require('./mixins');
 
 const app = new Vue({
     el: '#app'

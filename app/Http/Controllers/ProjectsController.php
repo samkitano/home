@@ -110,6 +110,15 @@ class ProjectsController extends Controller
         ];
     }
 
+    public function getOptions($type, $tpl)
+    {
+        $res = $this->builder->getTemplateOptions(
+            $type,
+            $tpl
+        );
+
+        return response()->json(['options' => $res], 200);
+    }
 
     /**
      * Remove the specified resource from storage.
@@ -118,7 +127,7 @@ class ProjectsController extends Controller
      */
     public function destroyProject()
     {
-        //
+        //TODO
     }
 
     /**

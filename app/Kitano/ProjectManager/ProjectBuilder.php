@@ -7,6 +7,7 @@ use App\Kitano\ProjectManager\Traits\HandlesNpm;
 use App\Kitano\ProjectManager\Traits\ProjectLogger;
 use App\Kitano\ProjectManager\PseudoConsole\Console;
 use App\Kitano\ProjectManager\Traits\HandlesComposer;
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use App\Kitano\ProjectManager\Exceptions\ProjectManagerException;
 
 class ProjectBuilder
@@ -247,6 +248,17 @@ class ProjectBuilder
         $this->console->write('$PATH is: '.$path);
         $this->console->write('OS is: '.PHP_OS);
         $this->console->write("Building {$this->projectType} project '{$this->projectName}'.");
+    }
+
+    public function getTemplateOptions($type, $template)
+    {
+        $manager = __NAMESPACE__."\\Managers\\{$type}Manager";
+
+        if (! class_exists($manager)) {
+            throw new FileNotFoundException("{$manager} Class does not exist!");
+        }
+
+        return call_user_func($manager."::getPrompts", $template);
     }
 
     /**

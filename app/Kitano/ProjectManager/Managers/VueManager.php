@@ -14,7 +14,12 @@ class VueManager extends ProjectBuilder implements Manager
 {
     use FetchesTemplates;
 
-    protected static $prompts = [];
+    protected static $prompts = [
+        'runNpm' => [
+            'type' => 'confirm',
+            'message' => 'Run npm after install?'
+        ]
+    ];
 
     protected static $templateNames = [
         'webpack',
@@ -169,7 +174,7 @@ class VueManager extends ProjectBuilder implements Manager
     {
         $this->console->write('Downloading template...');
 
-        $download = $this->fetchTemplate($template);
+        $download = FetchesTemplates::fetch($template);
 
         if (! $download) {
             throw new ProjectManagerException("Error downloading template '{$template}'!");
@@ -190,7 +195,7 @@ class VueManager extends ProjectBuilder implements Manager
     {
         $this->console->write("Extracting files from '{$downloaded}'", $this->verbose);
 
-        $extracted = $this->extract($downloaded);
+        $extracted = FetchesTemplates::extract($downloaded);
 
         if (! $extracted) {
             throw new ProjectManagerException("Error extracting '{$downloaded}'!");
@@ -221,7 +226,7 @@ class VueManager extends ProjectBuilder implements Manager
 
         $repo = $this->templateRepos[$this->template];
         $this->console->write("Repo is '{$repo}'", $this->verbose);
-        $remote = $this->latestVersion($this->template);
+        $remote = FetchesTemplates::latestVersion($this->template);
 
         $this->console->write("Remote version is '{$remote}'", $this->verbose);
 
@@ -284,17 +289,12 @@ class VueManager extends ProjectBuilder implements Manager
      * @param string $template
      *
      * @return array
-     * @throws FileNotFoundException
      */
     public static function getPrompts($template)
     {
         $meta = static::getMeta($template);
-
-        if (! $meta) {
-            return false;
-        }
-
-        return array_merge($meta['prompts'], static::$prompts);
+// todo: PWA error not an array ? wtf!
+        return array_merge(isset($meta['prompts']) ? $meta['prompts'] : [], static::$prompts);
     }
 
     /**
@@ -310,18 +310,37 @@ class VueManager extends ProjectBuilder implements Manager
      *
      * @param string $template
      *
-     * @return string JSON
+     * @return string
      * @throws FileNotFoundException
+     * @throws ProjectManagerException
      */
     public static function getMeta($template)
     {
-        $metajs = public_path(env('VUE_TEMPLATES'))."/{$template}/meta.js";
-        $metajson = public_path(env('VUE_TEMPLATES'))."/{$template}/meta.json";
+        $tplPath = public_path(env('VUE_TEMPLATES')).DIRECTORY_SEPARATOR.$template;
 
-        if (! file_exists($metajs) && ! file_exists($metajson)) {
-            return false;
+        if (! is_dir($tplPath)) {
+            $tpl = FetchesTemplates::fetch($template);
+
+            if (! $tpl) {
+                throw new ProjectManagerException("Error fetching template '{$template}'");
+            }
+
+            $ext = FetchesTemplates::extract($tpl);
+
+            if (! $ext) {
+                throw new ProjectManagerException("Error extracting template '{$template}'");
+            }
         }
 
-        return jsonDecodeMetaFile(file_get_contents(file_exists($metajson) ? $metajson : $metajs));
+        $metajs = $tplPath.DIRECTORY_SEPARATOR."meta.js";
+        $metajson = $tplPath.DIRECTORY_SEPARATOR."meta.json";
+
+        if (! file_exists($metajs) && ! file_exists($metajson)) {
+            throw new FileNotFoundException("Template {$template} not found!");
+        }
+
+        $metaFile = file_exists($metajson) ? $metajson : $metajs;
+
+        return jsonDecodeMetaFile(file_get_contents($metaFile));
     }
 }

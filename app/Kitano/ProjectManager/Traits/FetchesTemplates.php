@@ -10,19 +10,16 @@ use RecursiveDirectoryIterator;
 trait FetchesTemplates
 {
     /**
-     * @return string
-     */
-    abstract protected function getTemplatesPath();
-
-    /**
      * @param string $template
      *
      * @return bool|string
      */
-    public function fetchTemplate($template)
+    public static function fetch($template)
     {
-        if (! $this->hasLocal($template)) {
-            $file = $this->getTemplatesPath().DIRECTORY_SEPARATOR.$template.'.zip';
+        $tplPath = env('VUE_TEMPLATES');
+
+        if (! static::hasLocal($template)) {
+            $file = $tplPath.DIRECTORY_SEPARATOR.$template.'.zip';
             $url = "https://github.com/vuejs-templates/{$template}/archive/master.zip";
 
             file_put_contents($file,
@@ -44,9 +41,9 @@ trait FetchesTemplates
      *
      * @return bool
      */
-    public function extract($file)
+    public static function extract($file)
     {
-        $path = $this->getTemplatesPath();
+        $tplPath = env('VUE_TEMPLATES');
 
         if (! file_exists($file)) {
             ProjectLogger::addEntry("{$file} not found!");
@@ -54,19 +51,19 @@ trait FetchesTemplates
         }
 
         $fDir = preg_replace('/\\.[^.\\s]{3,4}$/', '', basename($file));
-        $dest = $path.DIRECTORY_SEPARATOR.$fDir;
+        $dest = $tplPath.DIRECTORY_SEPARATOR.$fDir;
         $zip = new ZipArchive;
 
         ProjectLogger::addEntry("{ZIP Open: {$file}");
 
         $zip->open($file);
-        $zip->extractTo($this->getTemplatesPath());
+        $zip->extractTo($tplPath);
         $zip->close();
 
         ProjectLogger::addEntry("{ZIP Close: {$file}");
 
-        $this->rename($dest)
-             ->changePermissions($dest);
+        static::rename($dest);
+        static::changePermissions($dest);
 
         unlink($file);
 
@@ -78,7 +75,7 @@ trait FetchesTemplates
      *
      * @return void
      */
-    public function rChmod($dir)
+    public static function rChmod($dir)
     {
         ProjectLogger::addEntry("{RECURSIVE CHMOD: {$dir}, 0777");
 
@@ -97,7 +94,7 @@ trait FetchesTemplates
      *
      * @return bool
      */
-    public function hasLocal($template)
+    public static function hasLocal($template)
     {
         return is_dir($template);
     }
@@ -107,9 +104,9 @@ trait FetchesTemplates
      *
      * @return mixed
      */
-    public function latestVersion($repo)
+    public static function latestVersion($repo)
     {
-        $req = $this->makeRequest('https://api.github.com/repos/vuejs-templates/'.$repo.'/releases/latest');
+        $req = static::makeRequest('https://api.github.com/repos/vuejs-templates/'.$repo.'/releases/latest');
         $data = json_decode($req->getBody(), true);
 
         ProjectLogger::addEntry("{LATEST TEMPLATE VER. -> {$data['tag_name']}.");
@@ -122,7 +119,7 @@ trait FetchesTemplates
      *
      * @return mixed
      */
-    protected function makeRequest($url)
+    protected static function makeRequest($url)
     {
         $client = new Client();
 
@@ -134,7 +131,7 @@ trait FetchesTemplates
      *
      * @return $this
      */
-    protected function rename($dest)
+    protected static function rename($dest)
     {
         if (file_exists($dest)) {
             ProjectLogger::addEntry("{DIR EXISTS. UNLINKING -> {$dest}");
@@ -143,8 +140,6 @@ trait FetchesTemplates
 
         ProjectLogger::addEntry("{REN: {$dest}.'-master' -> {$dest}");
         rename($dest.'-master', $dest);
-
-        return $this;
     }
 
     /**
@@ -152,7 +147,7 @@ trait FetchesTemplates
      *
      * @return $this
      */
-    protected function changePermissions($dest)
+    protected static function changePermissions($dest)
     {
         ProjectLogger::addEntry("{CHMOD: {$dest}, 0777");
         chmod($dest, 0777);
@@ -162,8 +157,6 @@ trait FetchesTemplates
             chmod($dest.DIRECTORY_SEPARATOR.'package.json', 0777);
         }
 
-        $this->rChmod($dest.DIRECTORY_SEPARATOR.'template');
-
-        return $this;
+        static::rChmod($dest.DIRECTORY_SEPARATOR.'template');
     }
 }

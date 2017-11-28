@@ -1,53 +1,23 @@
 <template lang="html">
-  <div>
-    <v-create-btn :items="items"/>
+  <b-modal
+    id="project"
+    ref="project"
+    size="lg"
+    v-model="showModal"
+    @hidden="cancelCreating">
 
-    <!-- <v-create-modal/> -->
-    <b-modal
-      id="project"
-      ref="project"
-      size="lg"
-      v-model="showModal"
-      @hidden="cancelProject">
-      <div slot="modal-header">
-        <h3 v-if="!isWorking">Create a new {{ fields.type }} project</h3>
-      </div>
+    <div slot="modal-header" class="w-100">
+      <v-form-head :maxSteps="maxSteps" :step="formStep" :projectType="type"/>
+    </div>
 
-      <form @submit.stop="createProject">
-        <b-form-group
-          description="/^[a-zA-Z]\w+$/ Project name will be camelized in .json files."
-          label="Project Name *"
-          :feedback="feedbacks.name" 
-          :state="states.name"
-        >
-          <b-form-input
-            id="name"
-            ref="name"
-            autofocus
-            :state="states.name"
-            v-on:input="validateProjectName"
-            v-on:change="checkDirExists"
-            v-model.trim="fields.name"></b-form-input>
-        </b-form-group>
+    <v-form :templates="templates" :maxSteps="maxSteps" :step="formStep" :sites="sites"/>
 
-        <b-form-group
-          description="/^[a-zA-Z]\w+$/"
-          label="Project Description"
-          :feedback="feedbacks.description" 
-          :state="states.description"
-        >
-          <b-form-input
-            id="description"
-            ref="description"
-            :state="states.description"
-            v-on:input="validateProjectDescription"
-            v-model.trim="fields.description"></b-form-input>
-        </b-form-group>
-      </form>
+    <div slot="modal-footer" class="w-100">
+      <v-form-footer :maxSteps="maxSteps" :step="formStep"/>
+    </div>
 
-      <v-console :output="output"/>
-    </b-modal>
-  </div>
+    <v-console :output="output"/>
+  </b-modal>
 </template>
 
 
@@ -59,22 +29,45 @@
     warning: 'yellow'
   }
   
-  import forbidden from '../forbiddenFileNames'
   import vConsole from './pseudoConsole'
-  import vCreateBtn from './createBtn'
+  import vForm from './createModalForm'
+  import vFormHead from './createModalHead'
+  import vFormFooter from './createModalFooter'
   import { find } from 'lodash'
 
   export default {
     beforeDestroy () {
-      Bus.$off('type', this.startProject)
+      Bus.$off('type', this.startCreating)
+      Bus.$off('cancel', this.cancelCreating)
+      Bus.$off('next', this.nextStep)
+      Bus.$off('prev', this.prevStep)
     },
 
     components: {
       vConsole,
-      vCreateBtn
+      vForm,
+      vFormHead,
+      vFormFooter
+    },
+
+    computed: {
+      /**
+       * Compute necessary steps to complete creation process.
+       * Up to 3: Details, Template and Options
+       * Details: required for all projects
+       * Templete: required for some projects
+       * Options: includes option to set
+       * console verbosity. Depends on type/template choice.
+       *
+       * @return { Number }
+       */
+      maxSteps () {
+        return this.ntemplates ? 3 : 2
+      }
     },
 
     created () {
+      // TODO move listener to console
       Echo
         .channel('console')
         .listen('ConsoleMessageEvent', (e) => {
@@ -83,63 +76,66 @@
           }
         })
 
-      Bus.$on('type', this.startProject)
+      Bus.$on('type', this.startCreating)
+      Bus.$on('cancel', this.cancelCreating)
+      Bus.$on('next', this.nextStep)
+      Bus.$on('prev', this.prevStep)
     },
 
     data () {
       return {
-        feedbacks: {
-          description: '',
-          name: '',
-        },
-        fields: {
-          description: '',
-          name: '',
-          type: ''
-        },
-        forbidden,
+        ntemplates: 0,
+        templates: [],
+        formStep: 1,
         output: [],
         showModal: false,
-        states: {
-          description: '',
-          name: '',
-        }
+        type: '',
       }
     },
 
     methods: {
-      cancelProject () {
+      /**
+       * Close and Reset modal
+       */
+      cancelCreating () {
+        Bus.$emit('resetForm', true)
         this.showModal = false
+        this.type = ''
+        this.formStep = 1
       },
-      checkDirExists () {
-        let found = find(this.sites, { folder: this.fields.name })
-
-        if (found) {
-          this.setInvalidProject()
-        }
-
-        return found
-      },
+      /**
+       * Format a console message
+       *
+       * @param { String } str
+       * @return { String }
+       */
       formatMessage (str) {
         let r1 = str.replace(/ \*\*/g, ' <span style="color:white">')
         let r2 = r1.replace(/\*\*/g, '</span>')
 
         return r2
       },
-      inArray (str, arr) {
-        return arr.indexOf(str) > -1
+      /**
+       * Move to next step
+       *
+       * @param { Number } step
+       */
+      nextStep (step) {
+        this.formStep++
       },
-      isJson (str) {
-        try {
-          let j = JSON.parse(str)
-
-          if (j && typeof j === "object") {
-            return j
-          }
-        } catch (e) {}
-
-        return false
+      /**
+       * Move to previous step
+       *
+       * @param { Number } step
+       */
+      prevStep (step) {
+        this.formStep--
       },
+      /**
+       * Send output to console
+       *
+       * @param { String } out
+       */
       sendOutput (out) {
         let json = this.isJson(out)
         let type = 'info'
@@ -156,65 +152,33 @@
 
         this.output.push(`<span style="color:${consoleColors[type]}">${msg}</span>`)
       },
-      setInvalidProject () {
-        this.states.name = false
-        this.feedbacks.name = `Project '${this.fields.name}' already exists!`
-        this.$refs.name.focus()
-      },
-      startProject (t) {
-        this.fields.type = t
+      /**
+       * Start creating a new project based on Type
+       *
+       * @param { String } type
+       */
+      startCreating (type) {
+        let item = find(this.items, { name: type })
+        this.type = type
+        this.templates = item.templates
+        this.ntemplates = item.templates.length
         this.showModal = true
-      },
-      validateProject () {
-        if (this.fields.name === '') {
-          this.states.name = false
-          this.feedbacks.name = 'A name is required!'
-        } else {
-          if (this.validateProjectName()) {
-            this.states.name = true
-          }
-        }
-
-        return this.states.name
-      },
-      validateProjectName () {
-        if (this.checkDirExists()) {
-          return false
-        }
-
-        if (!this.fields.name.match(/^[a-zA-Z]\w+$/) 
-          || this.inArray(this.fields.name.toUpperCase(), this.forbidden)) {
-          this.states.name = false
-          this.feedbacks.name = 'Invalid Name!'
-          return false
-        } else {
-          this.states.name = true
-          this.feedbacks.name = ''
-          return true
-        }
-      },
-      validateProjectDescription () {
-        if (!this.fields.description.match(/^[a-zA-Z]\w+$/) || this.inArray(this.fields.description, this.forbidden)) {
-          this.states.description = false
-          this.feedbacks.description = 'Invalid Description!'
-          return false
-        } else {
-          this.states.description = true
-          this.feedbacks.description = ''
-          return true
-        }
       }
     },
 
     props: {
-        items: {
-            required: true,
-            type: Object
-        },
-        show: {
-            type: Boolean,
-            default: true
-        }
+      items: {
+        required: true,
+        type: Array
+      },
+      sites: {
+        required: true,
+        type: Array
+      },
+      show: {
+        type: Boolean,
+        default: true
+      }
     }
   }
 </script>

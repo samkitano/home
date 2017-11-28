@@ -49,7 +49,7 @@ if (! function_exists('stringBetweenPositions')) {
     }
 }
 
-if (! function_exists('jsonDecodeFile')) {
+if (! function_exists('jsonDecodeMetaFile')) {
     /**
      * Get and decode JSON from any given .json or .js file
      * Intended to work exclusively with vue-cli metadata
@@ -61,14 +61,14 @@ if (! function_exists('jsonDecodeFile')) {
     function jsonDecodeMetaFile($content)
     {
         if (substr($content, 0, 1) === '{') {
-            return json_decode($content);
+            return json_decode($content, true);
         }
 
-        $close = strpos($content, '}}' . ',') + 2;
+        $close = strpos($content, '"prompts":');
         $content = '{' . trim(substr($content, $close));
         $content = str_replace('};', '}', $content);
         $content = trim(preg_replace('/\s\s+/', ' ', $content));
 
-        return json_decode($content);
+        return json_decode($content, true);
     }
 }
