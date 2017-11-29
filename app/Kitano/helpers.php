@@ -48,4 +48,3 @@ if (! function_exists('stringBetweenPositions')) {
         return substr($str, $i, isset($offset) ? $l + $offset : $l);
     }
 }
-oved function do
