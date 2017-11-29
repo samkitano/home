@@ -18,13 +18,13 @@ GUI provides a pseudo-console to output info about project creation progress.
 Generated output can be set to a minimum (silent) or maximum (verbose).
 
 Vue-Cli is emulated by simply converting Handlebar mustaches into [Twig](https://twig.symfony.com/) syntax.
-Available options for the GUI are to be provided by meta data on vue templates (TODO).
+Available options for the GUI is provided by meta data on vue templates.
 
 
 ## Requirements
 
     - PHP >=7.0.0
-    - Composer
+    - Composer (globally)
     - Node.js >=6.0.0
     - Npm >=5.5.1
     - Vue Cli (to be removed, eventually)
@@ -35,7 +35,9 @@ Available options for the GUI are to be provided by meta data on vue templates (
 
 ENTRY | DESCRIPTION | EXAMPLE
 ------|-------------|--------------
-AUTHOR | name and email | " John Doe &lt;doe&#64;example.com&gt;"
+DEFAULT_AUTHOR | name and email | " John Doe &lt;doe&#64;example.com&gt;"
+DEFAULT_LICENSE | default project license | MIT
+DEFAULT_VERSION | default version for new projects | 1.0.0
 SITES_DIR | path to local projects | "/Users/doe/www/sites"
 LOCAL_USER | local username | doe
 COMPOSER_HOME | path to composer cache | "/Users/doe/.composer"
