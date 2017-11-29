@@ -48,27 +48,4 @@ if (! function_exists('stringBetweenPositions')) {
         return substr($str, $i, isset($offset) ? $l + $offset : $l);
     }
 }
-
-if (! function_exists('jsonDecodeMetaFile')) {
-    /**
-     * Get and decode JSON from any given .json or .js file
-     * Intended to work exclusively with vue-cli metadata
-     * files starting with module.exports
-     *
-     * @param string $content
-     * @return mixed
-     */
-    function jsonDecodeMetaFile($content)
-    {
-        if (substr($content, 0, 1) === '{') {
-            return json_decode($content, true);
-        }
-
-        $close = strpos($content, '"prompts":');
-        $content = '{' . trim(substr($content, $close));
-        $content = str_replace('};', '}', $content);
-        $content = trim(preg_replace('/\s\s+/', ' ', $content));
-
-        return json_decode($content, true);
-    }
-}
+oved function do
