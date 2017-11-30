@@ -60170,7 +60170,7 @@ exports = module.exports = __webpack_require__(33)(undefined);
 
 
 // module
-exports.push([module.i, "\n.form-control-sm.custom-select {\n  padding: 0.25rem 0.5rem /* bootstrap select sm fix */\n}\n", ""]);
+exports.push([module.i, "\n.form-control-sm.custom-select {\n  padding: 0.25rem 0.5rem /* bootstrap select sm fix */\n}\n.option-box {\n  margin-bottom: 0\n}\n.blink {\n  color: white;\n  -webkit-animation: blinker .8s linear infinite;\n          animation: blinker .8s linear infinite\n}\n@-webkit-keyframes blinker {\n50% { opacity: 0\n}\n}\n@keyframes blinker {\n50% { opacity: 0\n}\n}\n", ""]);
 
 // exports
 
@@ -60253,6 +60253,16 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 
 
@@ -60279,78 +60289,11 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
       location: i.location,
       managers: i.managers,
       sites: i.sites,
-      tools: i.tools
+      tools: i.tools,
+      defaults: i.defaults
     };
   },
 
-
-  // methods: {
-  //   cancelProject () {
-  //     this.resetFields()
-  //     this.resetStates()
-
-  //     this.output = []
-  //     this.showCreateProject = false
-  //     this.done = false
-  //   },
-  //   checkWorking (e) {
-  //     if (this.isWorking) {
-  //       e.preventDefault()
-  //     }
-  //   },
-  //   createProject (e) {
-  //     e.preventDefault()
-
-  //     if (!this.validateProject()) {
-  //       return false
-  //     }
-
-  //     axios
-  //       // firstly, we check if project can be created at all
-  //       // TODO: get vue config options from meta
-  //       .get(`can-create-project/${this.fields.name}`)
-  //       .then((r) => { // then either we start creating project for real...
-  //         this.output.push(r.data.message)
-  //         this.startCreating()
-  //       })
-  //       .catch((e) => { // ...or miserably fail
-  //         // TODO: send ProjectManagerExceptions to console. Swal other errors
-  //         if (e.response.data.message === `Project '${this.fields.name}' already exists!`) {
-  //           this.setInvalidProject()
-  //         } else {
-  //           this.$swal('ERROR', e.response.data.message, 'error')
-  //         }
-  //       })
-  //   },
-  //   startCreating () {
-  //     let payload = {
-  //       _method: 'POST',
-  //     }
-
-  //     if (this.verbose) {
-  //       payload._verbose = true
-  //     }
-
-  //     this.sendOutput('This may take a while! Please Wait...')
-  //     this.sendOutput(JSON.stringify({message: 'DO NOT CLOSE THIS MODAL!', type: 'warning'}))
-  //     this.sendOutput(JSON.stringify({message: 'WAIT FOR THE [CLOSE] BUTTON TO APPEAR', type: 'warning'}))
-
-  //     Object.assign(payload, this.fields)
-
-  //     axios
-  //       .post('/', payload)
-  //       .then((r) => {
-  //         this.sites.push(r.data.site)
-  //         this.done = true
-  //         this.sendOutput(' ')
-  //       })
-  //       .catch((e) => {
-  //         this.done = true
-  //         this.sendOutput(JSON.stringify({message: e.response.data.message, type: 'error'}))
-  //         this.sendOutput(' ')
-  //       })
-  //   }
-  // },
 
   props: {
     items: {
@@ -60670,16 +60613,19 @@ module.exports = Component.exports
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__pseudoConsole__ = __webpack_require__(388);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__pseudoConsole___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__pseudoConsole__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__createModalForm__ = __webpack_require__(393);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__createModalForm___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__createModalForm__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__createModalHead__ = __webpack_require__(399);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__createModalHead___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__createModalHead__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__createModalFooter__ = __webpack_require__(402);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__createModalFooter___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3__createModalFooter__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_lodash__ = __webpack_require__(136);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_lodash___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4_lodash__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__createModalForm__ = __webpack_require__(393);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__createModalForm___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__createModalForm__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__createModalHead__ = __webpack_require__(399);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__createModalHead___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__createModalHead__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__createModalFooter__ = __webpack_require__(402);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__createModalFooter___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__createModalFooter__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_lodash__ = __webpack_require__(136);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_lodash___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_lodash__);
+//
+//
+//
+//
+//
 //
 //
 //
@@ -60705,12 +60651,11 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 
 var consoleColors = {
-  info: 'green',
-  success: 'cyan',
+  info: 'cyan',
   error: 'red',
-  warning: 'yellow'
+  warning: 'yellow',
+  default: 'green'
 };
-
 
 
 
@@ -60723,14 +60668,15 @@ var consoleColors = {
     Bus.$off('cancel', this.cancelCreating);
     Bus.$off('next', this.nextStep);
     Bus.$off('prev', this.prevStep);
+    Bus.$off('working', this.setWorking);
+    Bus.$off('clearConsole', this.clearConsole);
   },
 
 
   components: {
-    vConsole: __WEBPACK_IMPORTED_MODULE_0__pseudoConsole___default.a,
-    vForm: __WEBPACK_IMPORTED_MODULE_1__createModalForm___default.a,
-    vFormHead: __WEBPACK_IMPORTED_MODULE_2__createModalHead___default.a,
-    vFormFooter: __WEBPACK_IMPORTED_MODULE_3__createModalFooter___default.a
+    vForm: __WEBPACK_IMPORTED_MODULE_0__createModalForm___default.a,
+    vFormHead: __WEBPACK_IMPORTED_MODULE_1__createModalHead___default.a,
+    vFormFooter: __WEBPACK_IMPORTED_MODULE_2__createModalFooter___default.a
   },
 
   computed: {
@@ -60742,7 +60688,7 @@ var consoleColors = {
      * Options: includes option to set
      * console verbosity. Depends on type/template choice.
      *
-     * @return { Number }
+     * @returns {number}
      */
     maxSteps: function maxSteps() {
       return this.ntemplates ? 3 : 2;
@@ -60752,7 +60698,6 @@ var consoleColors = {
   created: function created() {
     var _this = this;
 
-    // TODO move listener to console
     Echo.channel('console').listen('ConsoleMessageEvent', function (e) {
       if (e.message) {
         _this.sendOutput(e.message);
@@ -60763,12 +60708,15 @@ var consoleColors = {
     Bus.$on('cancel', this.cancelCreating);
     Bus.$on('next', this.nextStep);
     Bus.$on('prev', this.prevStep);
+    Bus.$on('working', this.setWorking);
+    Bus.$on('clearConsole', this.clearConsole);
   },
   data: function data() {
     return {
       ntemplates: 0,
       templates: [],
       formStep: 1,
+      isWorking: false,
       output: [],
       showModal: false,
       type: ''
@@ -60785,15 +60733,22 @@ var consoleColors = {
       this.showModal = false;
       this.type = '';
       this.formStep = 1;
+      this.clearConsole();
+    },
+
+    /**
+     * Clear pseudo-console
+     */
+    clearConsole: function clearConsole() {
+      this.output = [];
     },
 
     /**
      * Format a console message
-     *
-     * @param { String } str
-     * @return { String }
+     * @param {string} str
+     * @returns {string}
      */
-    formatMessage: function formatMessage(str) {
+    formatWhiteMsg: function formatWhiteMsg(str) {
       var r1 = str.replace(/ \*\*/g, ' <span style="color:white">');
       var r2 = r1.replace(/\*\*/g, '</span>');
 
@@ -60802,8 +60757,7 @@ var consoleColors = {
 
     /**
      * Move to next step
-     *
-     * @param { Number } step
+     * @param {number} step
      */
     nextStep: function nextStep(step) {
       this.formStep++;
@@ -60811,42 +60765,66 @@ var consoleColors = {
 
     /**
      * Move to previous step
-     *
-     * @param { Number } step
+     * @param {number} step
      */
     prevStep: function prevStep(step) {
       this.formStep--;
     },
 
     /**
+     * Prevents modal from closing
+     * if app is working
+     * @param {object} e
+     */
+    preventCloseIfWorking: function preventCloseIfWorking(e) {
+      if (this.isWorking) {
+        e.preventDefault();
+      }
+    },
+
+    /**
      * Send output to console
-     *
-     * @param { String } out
+     * @param {string} out
      */
     sendOutput: function sendOutput(out) {
       var json = this.isJson(out);
-      var type = 'info';
+      var type = 'default';
       var msg = out;
 
       if (json) {
-        type = json.hasOwnProperty('type') ? json.type : type;
-        msg = json.hasOwnProperty('message') ? json.message : msg;
+        type = json['type'] ? json.type : type;
+        msg = json['message'] ? json.message : msg;
       }
 
+      // strings between two asterisks will be parsed white
       if (msg.indexOf('**') > -1) {
-        msg = this.formatMessage(msg);
+        msg = this.formatWhiteMsg(msg);
+      }
+
+      // a nice blinking cursor
+      if (msg === '_CURSOR_') {
+        this.output.push('<span class="blink">_</span>');
+        return;
       }
 
       this.output.push('<span style="color:' + consoleColors[type] + '">' + msg + '</span>');
     },
 
     /**
+     * Set isWorking hook
+     * @param {boolean} state
+     */
+    setWorking: function setWorking(state) {
+      this.isWorking = state;
+    },
+
+    /**
      * Start creating a new project based on Type
-     *
-     * @param { String } type
+     * @param {string} type
      */
     startCreating: function startCreating(type) {
-      var item = Object(__WEBPACK_IMPORTED_MODULE_4_lodash__["find"])(this.items, { name: type });
+      var item = Object(__WEBPACK_IMPORTED_MODULE_3_lodash__["find"])(this.items, { name: type });
+
       this.type = type;
       this.templates = item.templates;
       this.ntemplates = item.templates.length;
@@ -60855,6 +60833,10 @@ var consoleColors = {
   },
 
   props: {
+    defaults: {
+      required: true,
+      type: Object
+    },
     items: {
       required: true,
       type: Array
@@ -60957,7 +60939,7 @@ exports = module.exports = __webpack_require__(33)(undefined);
 
 
 // module
-exports.push([module.i, "\n.output[data-v-3b9e1db6] {\n  color: green;\n  background: black;\n  padding: 0 .5em 1.5em .5em;\n  max-height: 300px;\n  height: 300px;\n  overflow-y: auto\n}\n.output p[data-v-3b9e1db6] {\n  margin: 0;\n  padding: 0\n}\n", ""]);
+exports.push([module.i, "\n.output[data-v-3b9e1db6] {\n  color: green;\n  background: black;\n  padding: 0 .5em 1.5em .5em;\n  max-height: 150px;\n  height: 150px;\n  overflow-y: auto;\n  text-align: left\n}\n.output p[data-v-3b9e1db6] {\n  margin: 0;\n  padding: 0;\n  font-size: .8rem\n}\n", ""]);
 
 // exports
 
@@ -60968,6 +60950,8 @@ exports.push([module.i, "\n.output[data-v-3b9e1db6] {\n  color: green;\n  backgr
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+//
+//
 //
 //
 //
@@ -61103,9 +61087,15 @@ module.exports = Component.exports
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__forbiddenFileNames__ = __webpack_require__(396);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_lodash__ = __webpack_require__(136);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_lodash___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_lodash__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__pseudoConsole__ = __webpack_require__(388);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__pseudoConsole___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__pseudoConsole__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__forbiddenFileNames__ = __webpack_require__(396);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_lodash__ = __webpack_require__(136);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_lodash___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_lodash__);
+//
+//
+//
+//
 //
 //
 //
@@ -61210,7 +61200,8 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 
-var defaults = __webpack_require__(395);
+var defaultFields = __webpack_require__(395);
+
 
 
 
@@ -61219,19 +61210,43 @@ var defaults = __webpack_require__(395);
   beforeDestroy: function beforeDestroy() {
     Bus.$off('resetForm', this.resetForm);
     Bus.$off('type', this.setType);
+    Bus.$off('working', this.setWorking);
   },
 
 
+  components: {
+    vConsole: __WEBPACK_IMPORTED_MODULE_0__pseudoConsole___default.a
+  },
+
   computed: {
+    /**
+     * When to show options
+     * @returns {boolean}
+     */
     showOptions: function showOptions() {
       return this.step === 3 || this.step === 2 && this.maxSteps === 2;
     },
+
+    /**
+     * When to show template selection
+     * @returns {boolean}
+     */
     showSelectTemplate: function showSelectTemplate() {
       return this.maxSteps > 2 && this.step === 2;
     },
+
+    /**
+     * Details validity (name and description)
+     * @returns {boolean}
+     */
     validDetails: function validDetails() {
       return this.states.name && this.states.description;
     },
+
+    /**
+     * Template is selected
+     * @returns {boolean}
+     */
     validTemplate: function validTemplate() {
       return this.states.template || this.maxSteps === 2;
     }
@@ -61240,6 +61255,7 @@ var defaults = __webpack_require__(395);
   created: function created() {
     Bus.$on('resetForm', this.resetForm);
     Bus.$on('type', this.setType);
+    Bus.$on('working', this.setWorking);
   },
   data: function data() {
     return {
@@ -61255,7 +61271,8 @@ var defaults = __webpack_require__(395);
         template: false,
         type: ''
       },
-      forbidden: __WEBPACK_IMPORTED_MODULE_0__forbiddenFileNames__["a" /* default */],
+      forbidden: __WEBPACK_IMPORTED_MODULE_1__forbiddenFileNames__["a" /* default */],
+      isWorking: false,
       nativeOptions: [],
       options: {},
       selectOptions: {},
@@ -61269,17 +61286,31 @@ var defaults = __webpack_require__(395);
 
 
   methods: {
+    /**
+     * Change field description (stored in 'feedbacks')
+     * @param {string} i
+     * @param {string} val
+     */
     changeDescription: function changeDescription(i, val) {
-      var choice = Object(__WEBPACK_IMPORTED_MODULE_1_lodash__["find"])(this.options[i].choices, { value: val });
+      var choice = Object(__WEBPACK_IMPORTED_MODULE_2_lodash__["find"])(this.options[i].choices, { value: val });
 
       this.$set(this.feedbacks, i, choice.name);
     },
+
+    /**
+     * Fetch template options from API
+     */
     fetchOptions: function fetchOptions() {
       var _this = this;
 
+      this.resetOptions();
+      Bus.$emit('clearConsole', true);
+
       var t = this.fields.type;
       var tpl = this.fields.template;
+
       this.fetchingOptions = true;
+
       axios.get('/options/' + t + '/' + tpl).then(function (r) {
         _this.options = r.data.options;
         _this.fetchingOptions = false;
@@ -61289,18 +61320,36 @@ var defaults = __webpack_require__(395);
         _this.fetchingOptions = false;
       });
     },
-    getFieldDefVal: function getFieldDefVal(obj) {
+
+    /**
+     * Get field default value
+     * @param {string} field
+     * @returns {string|boolean|number}
+     */
+    getFieldDefVal: function getFieldDefVal(field) {
+      var obj = this.options[field];
+
       switch (obj.type) {
         case 'confirm':
-          return obj.hasOwnProperty('default') ? obj.default : false;
+          return obj['default'] ? obj.default : false;
         case 'list':
-          return obj.hasOwnProperty('choices') ? obj.choices[0].value : false;
+          return obj['choices'] ? obj.choices[0].value : false;
         case 'string':
-          return obj.hasOwnProperty('default') ? obj.default : '';
+          if (this.defaults[field]) {
+            return this.defaults[field];
+          }
+
+          return obj['default'] ? obj.default : '';
         default:
-          return obj.hasOwnProperty('default') ? obj.default : false;
+          return obj['default'] ? obj.default : false;
       }
     },
+
+    /**
+     * Transform select choices for vue-bootstrap compliance
+     * @param {object} choices
+     * @returns {array}
+     */
     getOptionsForItem: function getOptionsForItem(choices) {
       var t = [];
 
@@ -61310,12 +61359,29 @@ var defaults = __webpack_require__(395);
 
       return t;
     },
+
+    /**
+     * Check if field is set in data hook
+     * @param {string} fieldName
+     * @returns {boolean}
+     */
     hasField: function hasField(fieldName) {
       return this.fields.hasOwnProperty(fieldName);
     },
-    isNative: function isNative(option) {
-      return this.inArray(option, this.nativeOptions);
+
+    /**
+     * Check if fetched template option is a native one,
+     * such as name and description
+     * @param {string} optionName
+     * @returns {boolean}
+     */
+    isNative: function isNative(optionName) {
+      return this.inArray(optionName, this.nativeOptions);
     },
+
+    /**
+     * Process fetched template options
+     */
     renderOptions: function renderOptions() {
       for (var item in this.options) {
         if (this.hasField(item)) {
@@ -61331,39 +61397,80 @@ var defaults = __webpack_require__(395);
         }
       }
     },
+
+    /**
+     * Cancels Form.
+     * Restores defaults.
+     */
     resetForm: function resetForm() {
-      for (var f in defaults.fields) {
-        this.fields[f] = defaults.fields[f];
+      Bus.$emit('clearConsole', true);
+
+      for (var f in defaultFields.fields) {
+        this.fields[f] = defaultFields.fields[f];
       }
 
-      for (var _f in defaults.states) {
-        this.states[_f] = defaults.states[_f];
+      for (var _f in defaultFields.states) {
+        this.states[_f] = defaultFields.states[_f];
       }
 
-      for (var _f2 in defaults.feedbacks) {
-        this.feedbacks[_f2] = defaults.feedbacks[_f2];
+      for (var _f2 in defaultFields.feedbacks) {
+        this.feedbacks[_f2] = defaultFields.feedbacks[_f2];
       }
 
-      for (var _f3 in this.fields) {
-        var found = Object(__WEBPACK_IMPORTED_MODULE_1_lodash__["find"])(_f3, defaults.fields);
+      this.resetOptions();
+    },
 
-        if (!found && !this.isNative(_f3)) {
-          delete this.fields[_f3];
-        }
-      }
-
-      this.options = {};
+    /**
+     * Reset Form Options
+     *
+     * Needed in case we decide to go wild,
+     * picking templates back and forth
+     * just for the fun.
+     */
+    resetOptions: function resetOptions() {
       this.nativeOptions = [];
       this.selectOptions = {};
+      this.options = {};
+
+      for (var f in this.fields) {
+        var found = defaultFields.fields.hasOwnProperty(f);
+
+        if (!found && !this.isNative(f)) {
+          delete this.fields[f];
+        }
+      }
     },
-    setOptionField: function setOptionField(field) {
-      this.$set(this.fields, field, this.getFieldDefVal(this.options[field]));
+
+    /**
+     * Set fetched option field in data hook
+     * @param {string} fieldName
+     */
+    setOptionField: function setOptionField(fieldName) {
+      this.$set(this.fields, fieldName, this.getFieldDefVal(fieldName));
     },
+
+    /**
+     * Set current project type
+     * @param {string} type
+     */
     setType: function setType(type) {
       this.fields.type = type;
     },
+
+    /**
+     * Set isWorking hook
+     * @param {boolean} state
+     */
+    setWorking: function setWorking(state) {
+      this.isWorking = state;
+    },
+
+    /**
+     * Project's Name Validation
+     * @returns {boolean}
+     */
     validateProjectName: function validateProjectName() {
-      var found = Object(__WEBPACK_IMPORTED_MODULE_1_lodash__["find"])(this.sites, { folder: this.fields.name });
+      var found = Object(__WEBPACK_IMPORTED_MODULE_2_lodash__["find"])(this.sites, { folder: this.fields.name });
 
       if (found) {
         this.states.name = false;
@@ -61384,6 +61491,11 @@ var defaults = __webpack_require__(395);
         return true;
       }
     },
+
+    /**
+     * Project's Description Validation
+     * @returns {boolean}
+     */
     validateProjectDescription: function validateProjectDescription() {
       if (this.fields.description === '') {
         return true;
@@ -61401,6 +61513,11 @@ var defaults = __webpack_require__(395);
         return true;
       }
     },
+
+    /**
+     * Template selection validation
+     * @returns {boolean}
+     */
     valiateTemplate: function valiateTemplate() {
       if (!this.fields.template) {
         this.states.template = false;
@@ -61415,9 +61532,22 @@ var defaults = __webpack_require__(395);
   },
 
   props: {
+    /**
+     * Some defaults for common fields
+     * @prop defaults
+     * @type {object}
+     */
+    defaults: {
+      required: true,
+      type: Object
+    },
     maxSteps: {
       required: true,
       type: Number
+    },
+    output: {
+      required: true,
+      type: Array
     },
     sites: {
       required: true,
@@ -61434,6 +61564,18 @@ var defaults = __webpack_require__(395);
   },
 
   watch: {
+    /**
+     * Let the whole app know when we are busy doing stuff
+     * @param {boolean} state
+     */
+    fetchingOptions: function fetchingOptions(state) {
+      Bus.$emit('working', state);
+    },
+
+    /**
+     * Emits authorization to change steps
+     * @param { Number } step
+     */
     step: function step(_step) {
       if (this.showSelectTemplate) {
         Bus.$emit('valid', this.validTemplate && this.validDetails);
@@ -61441,12 +61583,27 @@ var defaults = __webpack_require__(395);
         Bus.$emit('valid', this.validDetails);
       }
     },
+
+    /**
+     * Emits authorization to change to step 2
+     * @param {boolean} state
+     */
     validDetails: function validDetails(state) {
       Bus.$emit('valid', state);
     },
+
+    /**
+     * Emits authorization to change to step 3
+     * @param {boolean} state
+     */
     validTemplate: function validTemplate(state) {
       Bus.$emit('valid', state && this.validDetails);
     },
+
+    /**
+     * Fetch template options when showOption changes
+     * @param {boolean} state
+     */
     showOptions: function showOptions(state) {
       if (state) {
         this.fetchOptions();
@@ -61647,13 +61804,11 @@ var render = function() {
           staticClass: "steps2and3"
         },
         [
-          _c("h4", { staticClass: "text-info text-center" }, [
-            _vm._v(
-              _vm._s(
-                _vm.showSelectTemplate ? "Select Template" : "Choose Options"
-              )
-            )
-          ]),
+          _vm.showSelectTemplate
+            ? _c("h4", { staticClass: "text-info text-center" }, [
+                _vm._v("Select Template")
+              ])
+            : _vm._e(),
           _vm._v(" "),
           _c(
             "div",
@@ -61737,28 +61892,31 @@ var render = function() {
               staticClass: "step3"
             },
             [
-              _vm.fetchingOptions
-                ? _c("div", { staticClass: "text-center" }, [
-                    _c("i", {
-                      staticClass:
-                        "fa fa-2x fa-refresh fa-spin fa-fw text-primary"
-                    })
-                  ])
-                : _c(
+              _vm.showOptions
+                ? _c(
                     "div",
                     [
+                      _c("v-console", { attrs: { output: _vm.output } }),
+                      _vm._v(" "),
+                      _vm.options.length
+                        ? _c("h4", { staticClass: "text-info text-center" }, [
+                            _vm._v("Options\n")
+                          ])
+                        : _vm._e(),
+                      _vm._v(" "),
                       _vm._l(_vm.options, function(option, i) {
                         return [
                           !_vm.isNative(i) && option.type === "confirm"
                             ? _c(
                                 "p",
+                                { staticClass: "option-box" },
                                 [
                                   _c(
                                     "b-form-checkbox",
                                     {
                                       attrs: {
+                                        size: "sm",
                                         id: i,
-                                        stacked: "",
                                         value: true,
                                         "unchecked-value": false
                                       },
@@ -61770,11 +61928,7 @@ var render = function() {
                                         expression: "fields[i]"
                                       }
                                     },
-                                    [
-                                      _vm._v(
-                                        _vm._s(option.message) + "\n          "
-                                      )
-                                    ]
+                                    [_vm._v(_vm._s(option.message))]
                                   )
                                 ],
                                 1
@@ -61804,6 +61958,7 @@ var render = function() {
                                 [
                                   _c("b-form-select", {
                                     attrs: {
+                                      size: "sm",
                                       id: i,
                                       options: _vm.selectOptions[i]
                                     },
@@ -61832,12 +61987,13 @@ var render = function() {
                                   attrs: {
                                     label: option.label
                                       ? option.label
-                                      : option.message
+                                      : option.message,
+                                    required: option.required
                                   }
                                 },
                                 [
                                   _c("b-form-input", {
-                                    attrs: { id: i },
+                                    attrs: { size: "sm", id: i },
                                     model: {
                                       value: _vm.fields[i],
                                       callback: function($$v) {
@@ -61861,6 +62017,7 @@ var render = function() {
                     ],
                     2
                   )
+                : _vm._e()
             ]
           )
         ]
@@ -62101,36 +62258,55 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony default export */ __webpack_exports__["default"] = ({
   beforeDetroy: function beforeDetroy() {
     Bus.$off('valid', this.setValid);
+    Bus.$off('working', this.setWorking);
+    Bus.$off('done', this.setDone);
   },
-
-
-  computed: {
-    isWorking: function isWorking() {
-      return this.output.length > 0;
-    },
-    verboseText: function verboseText() {
-      return this.verbose ? 'Verbose' : 'Quiet';
-    }
-  },
-
   created: function created() {
     Bus.$on('valid', this.setValid);
+    Bus.$on('working', this.setWorking);
+    Bus.$on('done', this.setDone);
   },
   data: function data() {
     return {
       done: false,
       valid: false,
-      verbose: true
+      isWorking: false
     };
   },
 
 
   methods: {
+    /**
+     * Component Emitter
+     * @param {string} what
+     * @param {boolean|string|number} val
+     */
     emit: function emit(what, val) {
       Bus.$emit(what, val);
     },
-    setValid: function setValid(val) {
-      this.valid = val;
+
+    /**
+     * Set done hook
+     * @param {boolean} state
+     */
+    setDone: function setDone(state) {
+      this.done = state;
+    },
+
+    /**
+     * Set valid hook
+     * @param {boolean} state
+     */
+    setValid: function setValid(state) {
+      this.valid = state;
+    },
+
+    /**
+     * Set isWorking hook
+     * @param {boolean} state
+     */
+    setWorking: function setWorking(state) {
+      this.isWorking = state;
     }
   },
 
@@ -62154,74 +62330,115 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _c(
-    "div",
-    [
-      _c(
-        "b-btn",
-        {
-          staticClass: "float-right ml-1",
-          attrs: {
-            size: "sm",
-            disabled: _vm.step !== _vm.maxSteps,
-            variant: "primary"
-          },
-          on: {
-            click: function($event) {
-              _vm.emit("create", true)
-            }
-          }
-        },
-        [_vm._v("Create")]
-      ),
-      _vm._v(" "),
-      _c(
-        "b-btn",
-        {
-          staticClass: "float-right ml-1",
-          attrs: {
-            size: "sm",
-            variant: "info",
-            disabled: _vm.step === _vm.maxSteps || !_vm.valid
-          },
-          on: {
-            click: function($event) {
-              _vm.emit("next", _vm.step)
-            }
-          }
-        },
-        [_c("i", { staticClass: "fa fa-arrow-right" })]
-      ),
-      _vm._v(" "),
-      _c(
-        "b-btn",
-        {
-          staticClass: "float-right",
-          attrs: { size: "sm", variant: "info", disabled: _vm.step === 1 },
-          on: {
-            click: function($event) {
-              _vm.emit("prev", _vm.step)
-            }
-          }
-        },
-        [_c("i", { staticClass: "fa fa-arrow-left" })]
-      ),
-      _vm._v(" "),
-      _c(
-        "b-btn",
-        {
-          attrs: { size: "sm" },
-          on: {
-            click: function($event) {
-              _vm.emit("cancel", true)
-            }
-          }
-        },
-        [_vm._v("Cancel")]
-      )
-    ],
-    1
-  )
+  return _c("div", [
+    !_vm.isWorking
+      ? _c(
+          "div",
+          [
+            _c(
+              "b-btn",
+              {
+                staticClass: "float-right ml-1",
+                attrs: {
+                  size: "sm",
+                  disabled: _vm.step !== _vm.maxSteps,
+                  variant: "primary"
+                },
+                on: {
+                  click: function($event) {
+                    _vm.emit("create", true)
+                  }
+                }
+              },
+              [_vm._v("Create")]
+            ),
+            _vm._v(" "),
+            _c(
+              "b-btn",
+              {
+                staticClass: "float-right ml-1",
+                attrs: {
+                  size: "sm",
+                  variant: "info",
+                  disabled: _vm.step === _vm.maxSteps || !_vm.valid
+                },
+                on: {
+                  click: function($event) {
+                    _vm.emit("next", _vm.step)
+                  }
+                }
+              },
+              [_c("i", { staticClass: "fa fa-arrow-right" })]
+            ),
+            _vm._v(" "),
+            _c(
+              "b-btn",
+              {
+                staticClass: "float-right",
+                attrs: {
+                  size: "sm",
+                  variant: "info",
+                  disabled: _vm.step === 1
+                },
+                on: {
+                  click: function($event) {
+                    _vm.emit("prev", _vm.step)
+                  }
+                }
+              },
+              [_c("i", { staticClass: "fa fa-arrow-left" })]
+            ),
+            _vm._v(" "),
+            _c(
+              "b-btn",
+              {
+                directives: [
+                  {
+                    name: "show",
+                    rawName: "v-show",
+                    value: !_vm.done,
+                    expression: "!done"
+                  }
+                ],
+                attrs: { size: "sm" },
+                on: {
+                  click: function($event) {
+                    _vm.emit("cancel", true)
+                  }
+                }
+              },
+              [_vm._v("Cancel")]
+            )
+          ],
+          1
+        )
+      : _c(
+          "div",
+          [
+            _c(
+              "b-btn",
+              {
+                directives: [
+                  {
+                    name: "show",
+                    rawName: "v-show",
+                    value: _vm.done,
+                    expression: "done"
+                  }
+                ],
+                attrs: { size: "sm" },
+                on: {
+                  click: function($event) {
+                    _vm.emit("cancel", true)
+                  }
+                }
+              },
+              [_vm._v("Close")]
+            )
+          ],
+          1
+        )
+  ])
 }
 var staticRenderFns = []
 render._withStripped = true
@@ -62246,7 +62463,7 @@ var render = function() {
     {
       ref: "project",
       attrs: { id: "project", size: "lg" },
-      on: { hidden: _vm.cancelCreating },
+      on: { hide: _vm.preventCloseIfWorking, hidden: _vm.cancelCreating },
       model: {
         value: _vm.showModal,
         callback: function($$v) {
@@ -62277,9 +62494,11 @@ var render = function() {
       _vm._v(" "),
       _c("v-form", {
         attrs: {
+          defaults: _vm.defaults,
           templates: _vm.templates,
           maxSteps: _vm.maxSteps,
           step: _vm.formStep,
+          output: _vm.output,
           sites: _vm.sites
         }
       }),
@@ -62297,9 +62516,7 @@ var render = function() {
           })
         ],
         1
-      ),
-      _vm._v(" "),
-      _c("v-console", { attrs: { output: _vm.output } })
+      )
     ],
     1
   )
@@ -63104,7 +63321,9 @@ var render = function() {
       _vm._v(" "),
       _c("v-footer", { attrs: { tools: _vm.tools } }),
       _vm._v(" "),
-      _c("v-create", { attrs: { items: _vm.managers, sites: _vm.sites } }),
+      _c("v-create", {
+        attrs: { defaults: _vm.defaults, items: _vm.managers, sites: _vm.sites }
+      }),
       _vm._v(" "),
       _c("v-info-modal")
     ],

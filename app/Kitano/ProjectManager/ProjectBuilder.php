@@ -176,6 +176,51 @@ class ProjectBuilder
     }
 
     /**
+     * List existing managers
+     *
+     * @return array
+     */
+    public function getManagers()
+    {
+        $res = [];
+
+        foreach (glob(app_path('Kitano/ProjectManager/Managers/*.php')) as $manager) {
+            $m = basename($manager);
+            $name = substr($m, 0, strpos($m, 'Manager'));
+            $t['name'] = $name;
+            $t['templates'] = $this->getManagerTemplates($name);
+            $res[] = $t;
+        }
+
+        return $res;
+    }
+
+    public function getTemplateOptions($type, $template)
+    {
+        $manager = __NAMESPACE__."\\Managers\\{$type}Manager";
+
+        if (! class_exists($manager)) {
+            throw new FileNotFoundException("{$manager} Class does not exist!");
+        }
+
+        return call_user_func($manager."::getPrompts", $template);
+    }
+
+    public function getProjectsDir()
+    {
+        return env('SITES_DIR');
+    }
+
+    public function getBuilderDefaults()
+    {
+        return [
+            'author' => env('DEFAULT_AUTHOR', 'Me'),
+            'license' => env('DEFAULT_LICENSE', 'MIT'),
+            'version' => env('DEFAULT_VERSION', '1.0.0'),
+        ];
+    }
+
+    /**
      * Change dir and send current to console
      *
      * @param string $dir
@@ -190,9 +235,10 @@ class ProjectBuilder
     }
 
     /**
-     * Copy files
+     * Copy files (bulk) with subdirs
      *
      * @deprecated
+     *
      * @param string $src Source
      * @param string $dst Destination
      */
@@ -250,15 +296,15 @@ class ProjectBuilder
         $this->console->write("Building {$this->projectType} project '{$this->projectName}'.");
     }
 
-    public function getTemplateOptions($type, $template)
+    protected function getManagerTemplates($class)
     {
-        $manager = __NAMESPACE__."\\Managers\\{$type}Manager";
+        $manager = __NAMESPACE__."\\Managers\\{$class}Manager";
 
         if (! class_exists($manager)) {
             throw new FileNotFoundException("{$manager} Class does not exist!");
         }
 
-        return call_user_func($manager."::getPrompts", $template);
+        return call_user_func($manager.'::getProjectTemplates');
     }
 
     /**

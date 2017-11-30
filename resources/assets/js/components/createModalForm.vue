@@ -34,10 +34,8 @@
     </div>
 
     <div class="steps2and3" v-show="step > 1">
-      <h4
-        class="text-info text-center"
-        >{{ showSelectTemplate ? 'Select Template' : 'Choose Options' }}</h4
-      >
+      <h4 class="text-info text-center" v-if="showSelectTemplate">Select Template</h4>
+
       <div class="step2" v-show="showSelectTemplate">
         <b-form-group
           description="Pick a Template"
@@ -59,19 +57,23 @@
       </div>
 
       <div class="step3" v-show="showOptions">
-        <div class="text-center" v-if="fetchingOptions">
-          <i class="fa fa-2x fa-refresh fa-spin fa-fw text-primary"></i>
-        </div>
+        <div v-if="showOptions">
+          <v-console :output="output"/>
+          <h4 class="text-info text-center" v-if="options.length">Options
+<!--             <span class="text-center" v-if="fetchingOptions">
+              <i class="fa fa-spinner fa-spin fa-fw text-primary"></i>
+            </span>
+ -->          </h4>
 
-        <div v-else>
           <template v-for="(option, i) in options">
-            <p v-if="!isNative(i) && option.type === 'confirm'"><b-form-checkbox
-              :id="i"
-              stacked
-              v-model="fields[i]"
-              :value="true"
-              :unchecked-value="false">{{ option.message }}
-            </b-form-checkbox></p>
+            <p class="option-box" v-if="!isNative(i) && option.type === 'confirm'">
+              <b-form-checkbox
+                size="sm"
+                :id="i"
+                v-model="fields[i]"
+                :value="true"
+                :unchecked-value="false">{{ option.message }}</b-form-checkbox>
+            </p>
 
             <b-form-group
               v-if="!isNative(i) && option.type === 'list'"
@@ -79,17 +81,19 @@
               :description="feedbacks[i]"
               :label="option.message">
               <b-form-select
+                size="sm"
                 :id="i"
                 v-model="fields[i]"
                 :options="selectOptions[i]"
-                @input="changeDescription(i, $event)">
-              </b-form-select>
+                @input="changeDescription(i, $event)"></b-form-select>
             </b-form-group>
 
             <b-form-group
               v-if="!isNative(i) && option.type === 'string'"
-              :label="option.label ? option.label : option.message">
+              :label="option.label ? option.label : option.message"
+              :required="option.required">
               <b-form-input
+                size="sm"
                 :id="i"
                 v-model.trim="fields[i]"></b-form-input>
             </b-form-group>
@@ -102,8 +106,9 @@
 
 
 <script type="text/javascript">
-  const defaults = require('../defaultFields')
+  const defaultFields = require('../defaultFields')
 
+  import vConsole from './pseudoConsole'
   import forbidden from '../forbiddenFileNames'
   import { find } from 'lodash'
 
@@ -111,18 +116,39 @@
     beforeDestroy () {
       Bus.$off('resetForm', this.resetForm)
       Bus.$off('type', this.setType)
+      Bus.$off('working', this.setWorking)
+    },
+
+    components: {
+      vConsole
     },
 
     computed: {
+      /**
+       * When to show options
+       * @returns {boolean}
+       */
       showOptions () {
         return this.step === 3 || (this.step === 2 && this.maxSteps === 2)
       },
+      /**
+       * When to show template selection
+       * @returns {boolean}
+       */
       showSelectTemplate () {
         return this.maxSteps > 2 && this.step === 2
       },
+      /**
+       * Details validity (name and description)
+       * @returns {boolean}
+       */
       validDetails () {
         return this.states.name && this.states.description
       },
+      /**
+       * Template is selected
+       * @returns {boolean}
+       */
       validTemplate () {
         return this.states.template || this.maxSteps === 2
       }
@@ -131,6 +157,7 @@
     created () {
       Bus.$on('resetForm', this.resetForm)
       Bus.$on('type', this.setType)
+      Bus.$on('working', this.setWorking)
     },
 
     data () {
@@ -148,6 +175,7 @@
           type: ''
         },
         forbidden,
+        isWorking: false,
         nativeOptions: [],
         options: {},
         selectOptions: {},
@@ -160,15 +188,28 @@
     },
 
     methods: {
+      /**
+       * Change field description (stored in 'feedbacks')
+       * @param {string} i
+       * @param {string} val
+       */
       changeDescription (i, val) {
         let choice = find(this.options[i].choices, { value: val })
 
         this.$set(this.feedbacks, i, choice.name)
       },
+      /**
+       * Fetch template options from API
+       */
       fetchOptions () {
+        this.resetOptions()
+        Bus.$emit('clearConsole', true)
+
         let t = this.fields.type
         let tpl = this.fields.template
+
         this.fetchingOptions = true
+
         axios
           .get(`/options/${t}/${tpl}`)
           .then((r) => {
@@ -181,18 +222,34 @@
             this.fetchingOptions = false
           })
       },
-      getFieldDefVal (obj) {
+      /**
+       * Get field default value
+       * @param {string} field
+       * @returns {string|boolean|number}
+       */
+      getFieldDefVal (field) {
+        let obj = this.options[field]
+
         switch (obj.type) {
           case 'confirm':
-            return obj.hasOwnProperty('default') ? obj.default : false
+            return obj['default'] ? obj.default : false
           case 'list':
-            return obj.hasOwnProperty('choices') ? obj.choices[0].value : false
+            return obj['choices'] ? obj.choices[0].value : false
           case 'string':
-            return obj.hasOwnProperty('default') ? obj.default : ''
+            if (this.defaults[field]) {
+              return this.defaults[field]
+            }
+
+            return obj['default'] ? obj.default : ''
           default:
-            return obj.hasOwnProperty('default') ? obj.default : false
+            return obj['default'] ? obj.default : false
         }
       },
+      /**
+       * Transform select choices for vue-bootstrap compliance
+       * @param {object} choices
+       * @returns {array}
+       */
       getOptionsForItem (choices) {
         let t = []
 
@@ -202,12 +259,26 @@
 
         return t
       },
+      /**
+       * Check if field is set in data hook
+       * @param {string} fieldName
+       * @returns {boolean}
+       */
       hasField (fieldName) {
         return this.fields.hasOwnProperty(fieldName)
       },
-      isNative (option) {
-        return this.inArray(option, this.nativeOptions)
+      /**
+       * Check if fetched template option is a native one,
+       * such as name and description
+       * @param {string} optionName
+       * @returns {boolean}
+       */
+      isNative (optionName) {
+        return this.inArray(optionName, this.nativeOptions)
       },
+      /**
+       * Process fetched template options
+       */
       renderOptions () {
         for (let item in this.options) {
           if (this.hasField(item)) {
@@ -223,37 +294,72 @@
           }
         }
       },
+      /**
+       * Cancels Form.
+       * Restores defaults.
+       */
       resetForm () {
-        for (let f in defaults.fields) {
-          this.fields[f] = defaults.fields[f]
+        Bus.$emit('clearConsole', true)
+
+        for (let f in defaultFields.fields) {
+          this.fields[f] = defaultFields.fields[f]
         }
 
-        for (let f in defaults.states) {
-          this.states[f] = defaults.states[f]
+        for (let f in defaultFields.states) {
+          this.states[f] = defaultFields.states[f]
         }
 
-        for (let f in defaults.feedbacks) {
-          this.feedbacks[f] = defaults.feedbacks[f]
+        for (let f in defaultFields.feedbacks) {
+          this.feedbacks[f] = defaultFields.feedbacks[f]
         }
+
+        this.resetOptions()
+      },
+      /**
+       * Reset Form Options
+       *
+       * Needed in case we decide to go wild,
+       * picking templates back and forth
+       * just for the fun.
+       */
+      resetOptions () {
+        this.nativeOptions = []
+        this.selectOptions = {}
+        this.options = {}
 
         for (let f in this.fields) {
-          let found = find(f, defaults.fields)
+          let found = defaultFields.fields.hasOwnProperty(f)
 
           if (!found && !this.isNative(f)) {
             delete this.fields[f]
           }
         }
-
-        this.options = {}
-        this.nativeOptions = []
-        this.selectOptions = {}
       },
-      setOptionField (field) {
-        this.$set(this.fields, field, this.getFieldDefVal(this.options[field]))
+      /**
+       * Set fetched option field in data hook
+       * @param {string} fieldName
+       */
+      setOptionField (fieldName) {
+        this.$set(this.fields, fieldName, this.getFieldDefVal(fieldName))
       },
+      /**
+       * Set current project type
+       * @param {string} type
+       */
       setType (type) {
         this.fields.type = type
       },
+      /**
+       * Set isWorking hook
+       * @param {boolean} state
+       */
+      setWorking (state) {
+        this.isWorking = state
+      },
+      /**
+       * Project's Name Validation
+       * @returns {boolean}
+       */
       validateProjectName () {
         let found = find(this.sites, { folder: this.fields.name })
 
@@ -277,6 +383,10 @@
           return true
         }
       },
+      /**
+       * Project's Description Validation
+       * @returns {boolean}
+       */
       validateProjectDescription () {
         if (this.fields.description === '') {
           return true
@@ -295,6 +405,10 @@
           return true
         }
       },
+      /**
+       * Template selection validation
+       * @returns {boolean}
+       */
       valiateTemplate () {
         if (!this.fields.template) {
           this.states.template = false
@@ -309,9 +423,22 @@
     },
 
     props: {
+      /**
+       * Some defaults for common fields
+       * @prop defaults
+       * @type {object}
+       */
+      defaults: {
+        required: true,
+        type: Object
+      },
       maxSteps: {
         required: true,
         type: Number
+      },
+      output: {
+        required: true,
+        type: Array
       },
       sites: {
         required: true,
@@ -328,6 +455,17 @@
     },
 
     watch: {
+      /**
+       * Let the whole app know when we are busy doing stuff
+       * @param {boolean} state
+       */
+      fetchingOptions (state) {
+        Bus.$emit('working', state)
+      },
+      /**
+       * Emits authorization to change steps
+       * @param { Number } step
+       */
       step (step) {
         if (this.showSelectTemplate) {
           Bus.$emit('valid', (this.validTemplate && this.validDetails))
@@ -335,12 +473,24 @@
           Bus.$emit('valid', (this.validDetails))
         }
       },
+      /**
+       * Emits authorization to change to step 2
+       * @param {boolean} state
+       */
       validDetails (state) {
         Bus.$emit('valid', state)
       },
+      /**
+       * Emits authorization to change to step 3
+       * @param {boolean} state
+       */
       validTemplate(state) {
         Bus.$emit('valid', (state && this.validDetails))
       },
+      /**
+       * Fetch template options when showOption changes
+       * @param {boolean} state
+       */
       showOptions(state) {
         if (state) {
           this.fetchOptions()

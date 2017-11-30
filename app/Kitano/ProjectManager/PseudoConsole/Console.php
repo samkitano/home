@@ -31,7 +31,19 @@ class Console
                 ]);
             }
 
-            broadcast(new ConsoleMessageEvent($msg));
+            static::broadcast($msg);
         }
+    }
+
+    public static function broadcast($msg, $type = null)
+    {
+        if (isset($type)) {
+            $msg = json_encode([
+                'type' => $type,
+                'message' => $msg,
+            ]);
+        }
+
+        broadcast(new ConsoleMessageEvent($msg));
     }
 }

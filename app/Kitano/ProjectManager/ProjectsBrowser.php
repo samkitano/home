@@ -35,6 +35,7 @@ class ProjectsBrowser
      * @var string
      */
     protected $tld = 'dev';
+    
 
 
     /**
@@ -51,14 +52,9 @@ class ProjectsBrowser
      *
      * @return array
      */
-    public function getProjects()
+    public function getSites()
     {
-        return [
-            'sites' => $this->iterateProjects(),
-            'tools' => UserTools::$tools,
-            'managers' =>$this->getManagers(),
-            'location' => $this->dir,
-        ];
+        return $this->iterateProjectsFolder();
     }
 
     /**
@@ -87,37 +83,6 @@ class ProjectsBrowser
         $t['storagePermissions'] = $t['type'] === 'laravel' ? $this->getStoragePermissions($folder) : null;
 
         return $t;
-    }
-
-    /**
-     * List existing managers
-     *
-     * @return array
-     */
-    protected function getManagers()
-    {
-        $res = [];
-
-        foreach (glob(app_path('Kitano/ProjectManager/Managers/*.php')) as $manager) {
-            $m = basename($manager);
-            $name = substr($m, 0, strpos($m, 'Manager'));
-            $t['name'] = $name;
-            $t['templates'] = $this->getManagerTemplates($name);
-            $res[] = $t;
-        }
-
-        return $res;
-    }
-
-    protected function getManagerTemplates($class)
-    {
-        $manager = __NAMESPACE__."\\Managers\\{$class}Manager";
-
-        if (! class_exists($manager)) {
-            throw new FileNotFoundException("{$manager} Class does not exist!");
-        }
-
-        return call_user_func($manager.'::getProjectTemplates');
     }
 
     /**
@@ -150,7 +115,7 @@ class ProjectsBrowser
     /**
      * @return array
      */
-    protected function iterateProjects()
+    protected function iterateProjectsFolder()
     {
         $projects = [];
 

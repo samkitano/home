@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Kitano\ProjectManager\UserTools;
 use App\Kitano\ProjectManager\ProjectBuilder;
 use App\Kitano\ProjectManager\ProjectsBrowser;
 
@@ -23,7 +24,11 @@ class ProjectsController extends Controller
      * @param \App\Kitano\ProjectManager\ProjectBuilder $builder
      * @param \App\Kitano\ProjectManager\ProjectsBrowser $browser
      */
-    public function __construct(Request $request, ProjectBuilder $builder, ProjectsBrowser $browser)
+    public function __construct(
+        Request $request,
+        ProjectBuilder $builder,
+        ProjectsBrowser $browser
+    )
     {
         $this->request = $request;
         $this->builder = $builder;
@@ -37,7 +42,15 @@ class ProjectsController extends Controller
      */
     public function index()
     {
-        return view('index')->with('projects', $this->browser->getProjects());
+        $projects = [
+            'sites' => $this->browser->getSites(),
+            'tools' => UserTools::$tools,
+            'defaults' => $this->builder->getBuilderDefaults(),
+            'managers' => $this->builder->getManagers(),
+            'location' => $this->builder->getProjectsDir()
+        ];
+
+        return view('index')->with('projects', $projects);
     }
 
     /**

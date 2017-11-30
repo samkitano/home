@@ -3,14 +3,16 @@
     color: green;
     background: black;
     padding: 0 .5em 1.5em .5em;
-    max-height: 300px;
-    height: 300px;
-    overflow-y: auto
+    max-height: 150px;
+    height: 150px;
+    overflow-y: auto;
+    text-align: left
   }
 
   .output p {
     margin: 0;
-    padding: 0
+    padding: 0;
+    font-size: .8rem
   }
 </style>
 

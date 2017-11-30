@@ -6,6 +6,7 @@ use vierbergenlars\SemVer\version;
 use App\Kitano\ProjectManager\ProjectBuilder;
 use App\Kitano\ProjectManager\Services\VueCli;
 use App\Kitano\ProjectManager\Contracts\Manager;
+use App\Kitano\ProjectManager\PseudoConsole\Console;
 use App\Kitano\ProjectManager\Traits\FetchesTemplates;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use App\Kitano\ProjectManager\Exceptions\ProjectManagerException;
@@ -35,7 +36,7 @@ class VueManager extends ProjectBuilder implements Manager
      *
      * @var array
      */
-    protected $templateRepos = [
+    protected static $templateRepos = [
         'webpack' => 'https://github.com/vuejs-templates/webpack',
         'webpack-simple' => 'https://github.com/vuejs-templates/webpack-simple',
         'browserify' => 'https://github.com/vuejs-templates/browserify',
@@ -151,18 +152,6 @@ class VueManager extends ProjectBuilder implements Manager
     }
 
     /**
-     * Check if template exists
-     *
-     * @param string $fullPath
-     *
-     * @return bool
-     */
-    protected function templateExistsLocally($fullPath)
-    {
-        return is_dir($fullPath);
-    }
-
-    /**
      * Download selected template
      *
      * @param string $template Template Name
@@ -170,9 +159,9 @@ class VueManager extends ProjectBuilder implements Manager
      * @return string
      * @throws ProjectManagerException
      */
-    protected function downloadTemplate($template)
+    protected static function downloadTemplate($template)
     {
-        $this->console->write('Downloading template...');
+        Console::broadcast("Downloading template '{$template}'");
 
         $download = FetchesTemplates::fetch($template);
 
@@ -188,12 +177,12 @@ class VueManager extends ProjectBuilder implements Manager
      *
      * @param string $downloaded
      *
-     * @return $this
+     * @return Boolean
      * @throws ProjectManagerException
      */
-    protected function extractTemplate($downloaded)
+    protected static function extractTemplate($downloaded)
     {
-        $this->console->write("Extracting files from '{$downloaded}'", $this->verbose);
+        Console::broadcast("Extracting...");
 
         $extracted = FetchesTemplates::extract($downloaded);
 
@@ -201,40 +190,7 @@ class VueManager extends ProjectBuilder implements Manager
             throw new ProjectManagerException("Error extracting '{$downloaded}'!");
         }
 
-        $this->console->write($downloaded.' extracted!', $this->verbose);
-
-        return $this;
-    }
-
-    /**
-     * Get both local and remote template versions
-     *
-     * @return array
-     * @throws ProjectManagerException
-     */
-    protected function getTemplateVersions()
-    {
-        $local = $this->getLocalTemplateVersion();
-
-        if (! $local) {
-            throw new ProjectManagerException("Template '{$this->template}' not found. Unable to retrieve version.");
-        }
-
-        if ($local === '') {
-            throw new ProjectManagerException("Error fetching local version for template '{$this->template}'.");
-        }
-
-        $repo = $this->templateRepos[$this->template];
-        $this->console->write("Repo is '{$repo}'", $this->verbose);
-        $remote = FetchesTemplates::latestVersion($this->template);
-
-        $this->console->write("Remote version is '{$remote}'", $this->verbose);
-
-        if ($remote === null) {
-            throw new ProjectManagerException("Error fetching template '{$this->template}' latest version from Gthub.");
-        }
-
-        return [$local, $remote];
+        return $extracted;
     }
 
     /**
@@ -244,35 +200,14 @@ class VueManager extends ProjectBuilder implements Manager
      *
      * @return bool
      */
-    protected function compareVersions($versions)
+    protected static function compareVersions($versions)
     {
-        return version::eq($versions[0], $versions[1]);
-    }
+        $match = version::eq($versions[0], $versions[1]);
+        $matchText = $match ? "Up to date" : "Obsolete";
 
-    /**
-     * Get local template version
-     *
-     * @return string
-     * @throws ProjectManagerException
-     */
-    protected function getLocalTemplateVersion()
-    {
-        $file = $this->tplPath.DIRECTORY_SEPARATOR.$this->template.DIRECTORY_SEPARATOR.'package.json';
-        $this->console->write("Extracting version from '{$file}'", $this->verbose);
+        Console::broadcast("Local template is {$matchText}!", 'info');
 
-        if (! file_exists($file)) {
-            throw new ProjectManagerException("Can not find '{$file}'");
-        }
-
-        $pj = json_decode(file_get_contents($file));
-
-        if (! isset($pj->version)) {
-            return '';
-        }
-
-        $this->console->write("Local Version is '{$pj->version}'", $this->verbose);
-
-        return $pj->version;
+        return $match;
     }
 
     /**
@@ -292,8 +227,13 @@ class VueManager extends ProjectBuilder implements Manager
      */
     public static function getPrompts($template)
     {
+        Console::broadcast("Fetching '{$template}' meta...");
+
         $meta = static::getMeta($template);
-// todo: PWA error not an array ? wtf!
+
+        Console::broadcast("Ready to rock! Awaiting options...");
+        Console::broadcast("_CURSOR_");
+
         return array_merge(isset($meta['prompts']) ? $meta['prompts'] : [], static::$prompts);
     }
 
@@ -318,19 +258,7 @@ class VueManager extends ProjectBuilder implements Manager
     {
         $tplPath = public_path(env('VUE_TEMPLATES')).DIRECTORY_SEPARATOR.$template;
 
-        if (! is_dir($tplPath)) {
-            $tpl = FetchesTemplates::fetch($template);
-
-            if (! $tpl) {
-                throw new ProjectManagerException("Error fetching template '{$template}'");
-            }
-
-            $ext = FetchesTemplates::extract($tpl);
-
-            if (! $ext) {
-                throw new ProjectManagerException("Error extracting template '{$template}'");
-            }
-        }
+        static::fetchTemplate($template);
 
         $metajs = $tplPath.DIRECTORY_SEPARATOR."meta.js";
         $metajson = $tplPath.DIRECTORY_SEPARATOR."meta.json";
@@ -340,7 +268,115 @@ class VueManager extends ProjectBuilder implements Manager
         }
 
         $metaFile = file_exists($metajson) ? $metajson : $metajs;
+        $decoded = static::decodeMeta(file_get_contents($metaFile));
 
-        return jsonDecodeMetaFile(file_get_contents($metaFile));
+        if (null === $decoded) {
+            throw new ProjectManagerException("Can not decode file '{$metaFile}'!");
+        }
+
+        return $decoded;
+    }
+
+    protected static function fetchTemplate($template)
+    {
+        $tplPath = public_path(env('VUE_TEMPLATES')).DIRECTORY_SEPARATOR.$template;
+        $hasLocal = is_dir($tplPath);
+        $match = true;
+
+        if ($hasLocal) {
+            $match = static::checkVersions($template);
+        }
+
+        if (! $match || ! $hasLocal) {
+            $downloaded = static::downloadTemplate($template);
+
+            if (! $downloaded) {
+                throw new ProjectManagerException("Error downloading template '{$template}'");
+            }
+
+            $extracted = static::extract($downloaded);
+
+            if (! $extracted) {
+                throw new ProjectManagerException("Error extracting template '{$template}'");
+            }
+        }
+    }
+
+    protected static function checkVersions($template)
+    {
+        $local_v = static::getLocalTemplateVersion($template);
+        $remote_v = static::getRemoteVersion($template);
+        $match = static::compareVersions([$local_v, $remote_v]);
+
+        return $match;
+    }
+
+    protected static function getRemoteVersion($template)
+    {
+        $remote = FetchesTemplates::latestVersion($template);
+
+        if ($remote === null) {
+            throw new ProjectManagerException("Error obtaining template '{$template}' latest version from Gthub.");
+        }
+
+        Console::broadcast("Latest template '{$template}' version = v{$remote}");
+
+        return $remote;
+    }
+
+    /**
+     * Get local template version
+     *
+     * @param string $template Template Name
+     *
+     * @return string
+     * @throws ProjectManagerException
+     */
+    protected static function getLocalTemplateVersion($template)
+    {
+        $tplPath = public_path(env('VUE_TEMPLATES')).DIRECTORY_SEPARATOR.$template;
+        $file = $tplPath.DIRECTORY_SEPARATOR.'package.json';
+
+        if (! file_exists($file)) {
+            throw new ProjectManagerException("Can not find '{$file}'");
+        }
+
+        $pj = json_decode(file_get_contents($file));
+
+        if (! isset($pj->version) || $pj->version === '') {
+            throw new ProjectManagerException("Can not determine version of local template '{$template}'.");
+        }
+
+        Console::broadcast("Local template '{$template}' version = v{$pj->version}");
+
+        return $pj->version;
+    }
+
+    public static function decodeMeta($content)
+    {
+        Console::broadcast("Decoding...");
+
+        if (substr($content, 0, 1) === '{') {                   // content is most likely JSON
+            return json_decode($content, true);
+        }
+
+        $start = strpos($content, '"prompts":');                // json starts here
+        $content = trim(substr($content, $start));
+        $content = str_replace('};', '', $content);             // strip ending brace
+        $content = trim(preg_replace('/\s\s+/', '', $content)); // strip spaces
+        $content = '{'.$content.'}';                            // add opening and closing braces
+
+        /**
+         * Fix trailing commas (present in PWA template)
+         *
+         * PR: https://github.com/vuejs-templates/pwa/pull/123
+         * COMMIT: https://github.com/vuejs-templates/pwa/commit/d03f096a941514fe880bb5ee2b47a577b405db83
+         * MERGED: 29 Nov 2017, 16:47 CET
+         *
+         * NOTE: I've decided to keep this fix, just in case.
+         */
+        $content = str_replace(',},', '},', $content);
+
+        return json_decode($content, true);
     }
 }

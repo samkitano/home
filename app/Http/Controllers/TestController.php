@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Kitano\ProjectManager\Managers\VueManager;
 use App\Kitano\ProjectManager\VueTemplate;
 use App\Kitano\ProjectManager\Services\VueCli;
 use Illuminate\Http\Request;
@@ -9,6 +10,14 @@ use Illuminate\Http\Request;
 class TestController extends Controller
 {
     public function index()
+    {
+        $metaFile = public_path(env('VUE_TEMPLATES')).DIRECTORY_SEPARATOR.'pwa'.DIRECTORY_SEPARATOR.'meta.js';
+
+        $meta = file_get_contents($metaFile);
+
+        dd(VueManager::decodeMeta($meta));
+    }
+/*    public function index()
     {
         $r = new Request();
 
@@ -19,7 +28,7 @@ class TestController extends Controller
         //dd(VueCli::getMeta('webpack'));
         $v = new VueCli($r);
         $v->make();
-    }
+    }*/
 
     /*public function index()
         {

@@ -1,42 +1,42 @@
 <template lang="html">
   <div>
-    <b-btn size="sm"
-      :disabled="step !== maxSteps"
-      class="float-right ml-1"
-      variant="primary"
-      @click="emit('create', true)">Create</b-btn>
+    <div v-if="!isWorking">
+      <b-btn size="sm"
+        :disabled="step !== maxSteps"
+        class="float-right ml-1"
+        variant="primary"
+        @click="emit('create', true)">Create</b-btn>
 
-    <b-btn
-      size="sm"
-      variant="info"
-      class="float-right ml-1"
-      :disabled="step === maxSteps || !valid"
-      @click="emit('next', step)">
-      <i class="fa fa-arrow-right"></i>
-    </b-btn>
+      <b-btn
+        size="sm"
+        variant="info"
+        class="float-right ml-1"
+        :disabled="step === maxSteps || !valid"
+        @click="emit('next', step)">
+        <i class="fa fa-arrow-right"></i>
+      </b-btn>
 
-    <b-btn
-      size="sm"
-      variant="info"
-      class="float-right"
-      :disabled="step === 1"
-      @click="emit('prev', step)">
-      <i class="fa fa-arrow-left"></i>
-    </b-btn>
+      <b-btn
+        size="sm"
+        variant="info"
+        class="float-right"
+        :disabled="step === 1"
+        @click="emit('prev', step)">
+        <i class="fa fa-arrow-left"></i>
+      </b-btn>
 
-<!--     <b-btn
-      :pressed.sync="verbose"
-      size="sm"
-      class="float-right mr-1"
-      variant="info">{{ verboseText }}</b-btn>
- -->
-    <!-- <b-btn size="sm"
-      v-show="done"
-      @click="cancelProject">Close</b-btn> -->
+      <b-btn
+        size="sm"
+        v-show="!done"
+        @click="emit('cancel', true)">Cancel</b-btn>
+    </div>
 
-    <b-btn
-      size="sm"
-      @click="emit('cancel', true)">Cancel</b-btn>
+    <div v-else>
+      <b-btn
+        size="sm"
+        v-show="done"
+        @click="emit('cancel', true)">Close</b-btn>
+    </div>
   </div>
 </template>
 
@@ -45,35 +45,53 @@
   export default {
     beforeDetroy () {
       Bus.$off('valid', this.setValid)
-    },
-
-    computed: {
-      isWorking () {
-        return this.output.length > 0
-      },
-      verboseText () {
-        return this.verbose ? 'Verbose' : 'Quiet'
-      }
+      Bus.$off('working', this.setWorking)
+      Bus.$off('done', this.setDone)
     },
 
     created () {
       Bus.$on('valid', this.setValid)
+      Bus.$on('working', this.setWorking)
+      Bus.$on('done', this.setDone)
     },
 
     data () {
       return {
         done: false,
         valid: false,
-        verbose: true
+        isWorking: false
       }
     },
 
     methods: {
+      /**
+       * Component Emitter
+       * @param {string} what
+       * @param {boolean|string|number} val
+       */
       emit (what, val) {
         Bus.$emit(what, val)
       },
-      setValid (val) {
-        this.valid = val
+      /**
+       * Set done hook
+       * @param {boolean} state
+       */
+      setDone (state) {
+        this.done = state
+      },
+      /**
+       * Set valid hook
+       * @param {boolean} state
+       */
+      setValid (state) {
+        this.valid = state
+      },
+      /**
+       * Set isWorking hook
+       * @param {boolean} state
+       */
+      setWorking (state) {
+        this.isWorking = state
       }
     },
 

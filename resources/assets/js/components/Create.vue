@@ -4,32 +4,36 @@
     ref="project"
     size="lg"
     v-model="showModal"
+    @hide="preventCloseIfWorking"
     @hidden="cancelCreating">
 
     <div slot="modal-header" class="w-100">
       <v-form-head :maxSteps="maxSteps" :step="formStep" :projectType="type"/>
     </div>
 
-    <v-form :templates="templates" :maxSteps="maxSteps" :step="formStep" :sites="sites"/>
+    <v-form
+      :defaults="defaults"
+      :templates="templates"
+      :maxSteps="maxSteps"
+      :step="formStep"
+      :output="output"
+      :sites="sites"/>
 
     <div slot="modal-footer" class="w-100">
       <v-form-footer :maxSteps="maxSteps" :step="formStep"/>
     </div>
-
-    <v-console :output="output"/>
   </b-modal>
 </template>
 
 
 <script type="text/javascript">
   const consoleColors = {
-    info: 'green',
-    success: 'cyan',
+    info: 'cyan',
     error: 'red',
-    warning: 'yellow'
+    warning: 'yellow',
+    default: 'green'
   }
-  
-  import vConsole from './pseudoConsole'
+
   import vForm from './createModalForm'
   import vFormHead from './createModalHead'
   import vFormFooter from './createModalFooter'
@@ -41,10 +45,11 @@
       Bus.$off('cancel', this.cancelCreating)
       Bus.$off('next', this.nextStep)
       Bus.$off('prev', this.prevStep)
+      Bus.$off('working', this.setWorking)
+      Bus.$off('clearConsole', this.clearConsole)
     },
 
     components: {
-      vConsole,
       vForm,
       vFormHead,
       vFormFooter
@@ -59,7 +64,7 @@
        * Options: includes option to set
        * console verbosity. Depends on type/template choice.
        *
-       * @return { Number }
+       * @returns {number}
        */
       maxSteps () {
         return this.ntemplates ? 3 : 2
@@ -67,7 +72,6 @@
     },
 
     created () {
-      // TODO move listener to console
       Echo
         .channel('console')
         .listen('ConsoleMessageEvent', (e) => {
@@ -80,6 +84,8 @@
       Bus.$on('cancel', this.cancelCreating)
       Bus.$on('next', this.nextStep)
       Bus.$on('prev', this.prevStep)
+      Bus.$on('working', this.setWorking)
+      Bus.$on('clearConsole', this.clearConsole)
     },
 
     data () {
@@ -87,9 +93,10 @@
         ntemplates: 0,
         templates: [],
         formStep: 1,
+        isWorking: false,
         output: [],
         showModal: false,
-        type: '',
+        type: ''
       }
     },
 
@@ -102,14 +109,20 @@
         this.showModal = false
         this.type = ''
         this.formStep = 1
+        this.clearConsole()
+      },
+      /**
+       * Clear pseudo-console
+       */
+      clearConsole () {
+        this.output = []
       },
       /**
        * Format a console message
-       *
-       * @param { String } str
-       * @return { String }
+       * @param {string} str
+       * @returns {string}
        */
-      formatMessage (str) {
+      formatWhiteMsg (str) {
         let r1 = str.replace(/ \*\*/g, ' <span style="color:white">')
         let r2 = r1.replace(/\*\*/g, '</span>')
 
@@ -117,48 +130,69 @@
       },
       /**
        * Move to next step
-       *
-       * @param { Number } step
+       * @param {number} step
        */
       nextStep (step) {
         this.formStep++
       },
       /**
        * Move to previous step
-       *
-       * @param { Number } step
+       * @param {number} step
        */
       prevStep (step) {
         this.formStep--
       },
       /**
+       * Prevents modal from closing
+       * if app is working
+       * @param {object} e
+       */
+      preventCloseIfWorking (e) {
+        if (this.isWorking) {
+          e.preventDefault()
+        }
+      },
+      /**
        * Send output to console
-       *
-       * @param { String } out
+       * @param {string} out
        */
       sendOutput (out) {
         let json = this.isJson(out)
-        let type = 'info'
+        let type = 'default'
         let msg = out
 
         if (json) {
-          type = json.hasOwnProperty('type') ? json.type : type
-          msg = json.hasOwnProperty('message') ? json.message : msg
+          type = json['type'] ? json.type : type
+          msg = json['message'] ? json.message : msg
         }
 
+        // strings between two asterisks will be parsed white
         if (msg.indexOf('**' ) > -1) {
-          msg = this.formatMessage(msg)
+          msg = this.formatWhiteMsg(msg)
+        }
+
+        // a nice blinking cursor
+        if (msg === '_CURSOR_') {
+          this.output.push(`<span class="blink">_</span>`)
+          return
         }
 
         this.output.push(`<span style="color:${consoleColors[type]}">${msg}</span>`)
       },
       /**
+       * Set isWorking hook
+       * @param {boolean} state
+       */
+      setWorking (state) {
+        this.isWorking = state
+      },
+      /**
        * Start creating a new project based on Type
-       *
-       * @param { String } type
+       * @param {string} type
        */
       startCreating (type) {
         let item = find(this.items, { name: type })
+
         this.type = type
         this.templates = item.templates
         this.ntemplates = item.templates.length
@@ -167,6 +201,10 @@
     },
 
     props: {
+      defaults: {
+        required: true,
+        type: Object
+      },
       items: {
         required: true,
         type: Array
