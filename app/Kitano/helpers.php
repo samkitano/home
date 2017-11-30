@@ -48,3 +48,29 @@ if (! function_exists('stringBetweenPositions')) {
         return substr($str, $i, isset($offset) ? $l + $offset : $l);
     }
 }
+
+if (! function_exists('copyFiles')) {
+    /**
+     * Copy files (bulk) with subdirs
+     *
+     * @param string $src Source
+     * @param string $dst Destination
+     */
+    function copyFiles($src, $dst) {
+        $dir = opendir($src);
+
+        @mkdir($dst);
+
+        while (false !== ($file = readdir($dir))) {
+            if (($file !== '.') && ($file !== '..')) {
+                if (is_dir($src . DIRECTORY_SEPARATOR . $file)) {
+                    copyFiles($src . DIRECTORY_SEPARATOR . $file, $dst . DIRECTORY_SEPARATOR . $file);
+                } else {
+                    copy($src . DIRECTORY_SEPARATOR . $file, $dst . DIRECTORY_SEPARATOR . $file);
+                }
+            }
+        }
+
+        closedir($dir);
+    }
+}

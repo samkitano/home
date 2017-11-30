@@ -60664,12 +60664,14 @@ var consoleColors = {
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   beforeDestroy: function beforeDestroy() {
-    Bus.$off('type', this.startCreating);
+    Bus.$off('type', this.openCreateForm);
     Bus.$off('cancel', this.cancelCreating);
     Bus.$off('next', this.nextStep);
     Bus.$off('prev', this.prevStep);
     Bus.$off('working', this.setWorking);
     Bus.$off('clearConsole', this.clearConsole);
+    Bus.$off('sendOutput', this.sendOutput);
+    Bus.$off('popOutput', this.popOutput);
   },
 
 
@@ -60704,12 +60706,14 @@ var consoleColors = {
       }
     });
 
-    Bus.$on('type', this.startCreating);
+    Bus.$on('type', this.openCreateForm);
     Bus.$on('cancel', this.cancelCreating);
     Bus.$on('next', this.nextStep);
     Bus.$on('prev', this.prevStep);
     Bus.$on('working', this.setWorking);
     Bus.$on('clearConsole', this.clearConsole);
+    Bus.$on('sendOutput', this.sendOutput);
+    Bus.$on('popOutput', this.popOutput);
   },
   data: function data() {
     return {
@@ -60761,6 +60765,22 @@ var consoleColors = {
      */
     nextStep: function nextStep(step) {
       this.formStep++;
+    },
+
+    /**
+     * Start creating a new project based on Type
+     * @param {string} type
+     */
+    openCreateForm: function openCreateForm(type) {
+      var item = Object(__WEBPACK_IMPORTED_MODULE_3_lodash__["find"])(this.items, { name: type });
+
+      this.type = type;
+      this.templates = item.templates;
+      this.ntemplates = item.templates.length;
+      this.showModal = true;
+    },
+    popOutput: function popOutput() {
+      this.output.pop();
     },
 
     /**
@@ -60816,19 +60836,6 @@ var consoleColors = {
      */
     setWorking: function setWorking(state) {
       this.isWorking = state;
-    },
-
-    /**
-     * Start creating a new project based on Type
-     * @param {string} type
-     */
-    startCreating: function startCreating(type) {
-      var item = Object(__WEBPACK_IMPORTED_MODULE_3_lodash__["find"])(this.items, { name: type });
-
-      this.type = type;
-      this.templates = item.templates;
-      this.ntemplates = item.templates.length;
-      this.showModal = true;
     }
   },
 
@@ -61023,6 +61030,7 @@ var defaultFields = __webpack_require__(390);
     Bus.$off('resetForm', this.resetForm);
     Bus.$off('type', this.setType);
     Bus.$off('working', this.setWorking);
+    Bus.$off('create', this.create);
   },
 
 
@@ -61068,6 +61076,7 @@ var defaultFields = __webpack_require__(390);
     Bus.$on('resetForm', this.resetForm);
     Bus.$on('type', this.setType);
     Bus.$on('working', this.setWorking);
+    Bus.$on('create', this.create);
   },
   data: function data() {
     return {
@@ -61107,6 +61116,20 @@ var defaultFields = __webpack_require__(390);
       var choice = Object(__WEBPACK_IMPORTED_MODULE_2_lodash__["find"])(this.options[i].choices, { value: val });
 
       this.$set(this.feedbacks, i, choice.name);
+    },
+
+    /**
+     * Create the project
+     */
+    create: function create() {
+      Bus.$emit('working', true);
+      Bus.$emit('popOutput', true);
+
+      this.sendOutput('<span style="color:cyan">STARTING</span>');
+
+      for (var item in this.fields) {
+        this.sendOutput(item + ': ' + this.fields[item]);
+      }
     },
 
     /**
@@ -61251,6 +61274,9 @@ var defaultFields = __webpack_require__(390);
           delete this.fields[f];
         }
       }
+    },
+    sendOutput: function sendOutput(msg) {
+      Bus.$emit('sendOutput', msg);
     },
 
     /**
@@ -61590,7 +61616,11 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
   watch: {
     output: function output() {
-      this.$refs.output.scrollTop = this.$refs.output.scrollHeight;
+      var _this = this;
+
+      setTimeout(function () {
+        _this.$refs.output.scrollTop = _this.$refs.output.scrollHeight;
+      }, 10);
     }
   }
 });

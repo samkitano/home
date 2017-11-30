@@ -36,7 +36,9 @@
 
     watch: {
       output () {
-        this.$refs.output.scrollTop = this.$refs.output.scrollHeight
+        setTimeout(() => {
+          this.$refs.output.scrollTop = this.$refs.output.scrollHeight
+        }, 10)
       }
     }
   }

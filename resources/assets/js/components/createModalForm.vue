@@ -110,6 +110,7 @@
       Bus.$off('resetForm', this.resetForm)
       Bus.$off('type', this.setType)
       Bus.$off('working', this.setWorking)
+      Bus.$off('create', this.create)
     },
 
     components: {
@@ -151,6 +152,7 @@
       Bus.$on('resetForm', this.resetForm)
       Bus.$on('type', this.setType)
       Bus.$on('working', this.setWorking)
+      Bus.$on('create', this.create)
     },
 
     data () {
@@ -190,6 +192,19 @@
         let choice = find(this.options[i].choices, { value: val })
 
         this.$set(this.feedbacks, i, choice.name)
+      },
+      /**
+       * Create the project
+       */
+      create () {
+        Bus.$emit('working', true)
+        Bus.$emit('popOutput', true)
+
+        this.sendOutput('<span style="color:cyan">STARTING</span>')
+
+        for (let item in this.fields) {
+          this.sendOutput(`${item}: ${this.fields[item]}`)
+        }
       },
       /**
        * Fetch template options from API
@@ -327,6 +342,9 @@
             delete this.fields[f]
           }
         }
+      },
+      sendOutput (msg) {
+        Bus.$emit('sendOutput', msg)
       },
       /**
        * Set fetched option field in data hook

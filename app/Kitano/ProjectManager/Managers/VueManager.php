@@ -55,9 +55,6 @@ class VueManager extends ProjectBuilder implements Manager
      */
     public function build()
     {
-        $this->findTemplate()
-             ->setConfig();
-
         $converter = new VueCli($this->request);
 
         $this->files = $converter->make();
@@ -74,7 +71,7 @@ class VueManager extends ProjectBuilder implements Manager
      */
     protected function buildFiles()
     {
-        $this->console->write("Building files with Template '{$this->template}'...");
+        Console::broadcast("Building files with Template '{$this->template}'...");
 
         if (isset($this->files['copy'])) {
             foreach ($this->files['copy'] as $file) {
@@ -100,55 +97,9 @@ class VueManager extends ProjectBuilder implements Manager
         }
     }
 
-    /**
-     * Get required template from file system
-     * Download from github repo if necessary
-     *
-     * @return $this
-     */
-    protected function findTemplate()
-    {
-        $this->console->write("Looking for Vue Template '{$this->template}'.", $this->verbose);
-
-        $templatePath = $this->tplPath.DIRECTORY_SEPARATOR.$this->template;
-        $exists = $this->templateExistsLocally($templatePath);
-        $v = $exists ? $this->getTemplateVersions() : false;
-        $match = $v && $this->compareVersions($v);
-
-        if (! $exists || ($exists && ! $match)) {
-            if (! $match) {
-                $this->console->write('New template version available.', $this->verbose);
-            }
-
-            $downloaded = $this->downloadTemplate($this->template);
-
-            $this->console->write('Download complete. Extracting '.$downloaded, $this->verbose);
-
-            $this->extractTemplate($downloaded);
-        }
-
-        $this->console->write('Template Ready!');
-
-        return $this;
-    }
-
     protected function runNpm()
     {
         // TODO
-    }
-
-    /**
-     * Set build configuration
-     */
-    protected function setConfig()
-    {
-        $this->console->write("Preparing Build Configuration...", $this->verbose);
-
-        $this->options['private'] = isset($this->private) ? $this->private : true;
-        $this->options['license'] = isset($this->license) ? $this->license : 'MIT';
-
-        $cfg = implode(PHP_EOL, $this->options);
-        $this->console->write("Configuration: {$cfg}", $this->verbose);
     }
 
     /**

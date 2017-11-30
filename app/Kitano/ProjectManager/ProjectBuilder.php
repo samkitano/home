@@ -21,9 +21,6 @@ class ProjectBuilder
      */
     protected $baseDir = '';
 
-    /** @var \App\Kitano\ProjectManager\PseudoConsole\Console */
-    protected $console;
-
     /**
      * Path to projects folder
      * Set up in .env file
@@ -78,9 +75,6 @@ class ProjectBuilder
      */
     protected $tplPath;
 
-    /** @var bool */
-    protected $verbose = false;
-
 
     /**
      * @param Request $request
@@ -99,8 +93,6 @@ class ProjectBuilder
         $this->composerHome = env('COMPOSER_HOME', null);
         $this->composerLocation = env('COMPOSER_LOCATION', null);
         $this->vueLocation = env('VUE_LOCATION', null);
-        $this->verbose = $this->request->has('_verbose');
-        $this->console = new Console();
         $this->runNpm = $request->has('runNpm') && $request->input('runNpm');
         $this->template = $request->input('template');
         $this->tplPath = env('VUE_TEMPLATES') ? public_path(env('VUE_TEMPLATES')) : public_path();
@@ -158,14 +150,12 @@ class ProjectBuilder
 
         $builder = new $manager($this->request);
 
-        $this->verbose
-            ? $this->greet()
-            : $this->console->write("Building {$this->projectType} project '{$this->projectName}'.");
+        Console::broadcast("Building {$this->projectType} project '{$this->projectName}'.");
 
         call_user_func([$builder, 'build']);
 
-        $this->console->write("{$this->projectType} Project '{$this->projectName}' Created!");
-        $this->console->write("DONE!", 'success');
+        Console::broadcast("{$this->projectType} Project '{$this->projectName}' Created!");
+        Console::broadcast("DONE!", 'success');
 
         $browser = new ProjectsBrowser($this->request);
 
@@ -221,50 +211,6 @@ class ProjectBuilder
     }
 
     /**
-     * Change dir and send current to console
-     *
-     * @param string $dir
-     */
-    protected function changeDirectory($dir)
-    {
-        $this->console->write("CHDIR: ".$dir, $this->verbose);
-
-        chdir($dir);
-
-        $this->console->write("CWD: ".getcwd(), $this->verbose);
-    }
-
-    /**
-     * Copy files (bulk) with subdirs
-     *
-     * @deprecated
-     *
-     * @param string $src Source
-     * @param string $dst Destination
-     */
-    protected function copyFiles($src, $dst)
-    {
-        $dir = opendir($src);
-
-        @mkdir($dst);
-
-        while(false !== ($file = readdir($dir))) {
-            if (($file !== '.') && ($file !== '..')) {
-                if (is_dir($src.DIRECTORY_SEPARATOR.$file)) {
-                    $this->copyFiles($src.DIRECTORY_SEPARATOR.$file, $dst.DIRECTORY_SEPARATOR.$file);
-                }
-                else {
-                    $this->console->write("Copying ".$file, $this->verbose);
-
-                    copy($src.DIRECTORY_SEPARATOR.$file, $dst.DIRECTORY_SEPARATOR.$file);
-                }
-            }
-        }
-
-        closedir($dir);
-    }
-
-    /**
      * Write compiled files
      *
      * @param string $file
@@ -272,28 +218,9 @@ class ProjectBuilder
      */
     protected function writeFile($file, $content)
     {
-        $this->console->write("Writing {$file}...", $this->verbose);
+        Console::broadcast("Writing {$file}...");
 
         file_put_contents($file, $content);
-    }
-
-    /**
-     * Initial greeting when creating new project
-     */
-    protected function greet()
-    {
-        $this->console->write("Current directory is: ".getcwd());
-
-        $iam = shell_exec('whoami');
-        $iam = $iam === '_www' ? '_www (Apache 2)' : $iam;
-        $home = getenv('HOME');
-        $path = getenv('PATH');
-
-        $this->console->write("HELLO! I am: {$iam}");
-        $this->console->write('$HOME is: '.$home);
-        $this->console->write('$PATH is: '.$path);
-        $this->console->write('OS is: '.PHP_OS);
-        $this->console->write("Building {$this->projectType} project '{$this->projectName}'.");
     }
 
     protected function getManagerTemplates($class)
@@ -321,14 +248,6 @@ class ProjectBuilder
     protected function getProjectName()
     {
         return $this->projectName;
-    }
-
-    /**
-     * @return bool
-     */
-    protected function getVerbosity()
-    {
-        return $this->verbose;
     }
 
     /**

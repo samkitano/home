@@ -41,12 +41,14 @@
 
   export default {
     beforeDestroy () {
-      Bus.$off('type', this.startCreating)
+      Bus.$off('type', this.openCreateForm)
       Bus.$off('cancel', this.cancelCreating)
       Bus.$off('next', this.nextStep)
       Bus.$off('prev', this.prevStep)
       Bus.$off('working', this.setWorking)
       Bus.$off('clearConsole', this.clearConsole)
+      Bus.$off('sendOutput', this.sendOutput)
+      Bus.$off('popOutput', this.popOutput)
     },
 
     components: {
@@ -80,12 +82,14 @@
           }
         })
 
-      Bus.$on('type', this.startCreating)
+      Bus.$on('type', this.openCreateForm)
       Bus.$on('cancel', this.cancelCreating)
       Bus.$on('next', this.nextStep)
       Bus.$on('prev', this.prevStep)
       Bus.$on('working', this.setWorking)
       Bus.$on('clearConsole', this.clearConsole)
+      Bus.$on('sendOutput', this.sendOutput)
+      Bus.$on('popOutput', this.popOutput)
     },
 
     data () {
@@ -134,6 +138,21 @@
        */
       nextStep (step) {
         this.formStep++
+      },
+      /**
+       * Start creating a new project based on Type
+       * @param {string} type
+       */
+      openCreateForm (type) {
+        let item = find(this.items, { name: type })
+
+        this.type = type
+        this.templates = item.templates
+        this.ntemplates = item.templates.length
+        this.showModal = true
+      },
+      popOutput () {
+        this.output.pop()
       },
       /**
        * Move to previous step
@@ -185,18 +204,6 @@
        */
       setWorking (state) {
         this.isWorking = state
-      },
-      /**
-       * Start creating a new project based on Type
-       * @param {string} type
-       */
-      startCreating (type) {
-        let item = find(this.items, { name: type })
-
-        this.type = type
-        this.templates = item.templates
-        this.ntemplates = item.templates.length
-        this.showModal = true
       }
     },
 

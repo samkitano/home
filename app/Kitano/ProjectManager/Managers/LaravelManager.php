@@ -29,7 +29,7 @@ class LaravelManager extends ProjectBuilder implements Manager
 
         $this->console->write("COMPOSER COMMAND is: '{$this->composerCommand}'", $this->verbose);
 
-        $this->changeDirectory("../../{$this->baseDir}");
+        chdir("../../{$this->baseDir}");
 
         $this->console->write("Executing composer command. Please Wait...", $this->verbose);
 
@@ -70,7 +70,7 @@ class LaravelManager extends ProjectBuilder implements Manager
         $this->console->write('CWD: '.$cwd, $this->verbose);
 
         if (basename($cwd) !== $this->projectName) {
-            $this->changeDirectory($this->dir.DIRECTORY_SEPARATOR.$this->projectName);
+            chdir($this->dir.DIRECTORY_SEPARATOR.$this->projectName);
         }
 
         $p = getenv('PATH');
@@ -103,7 +103,7 @@ class LaravelManager extends ProjectBuilder implements Manager
         $cwd = getcwd();
 
         if (basename($cwd) === $this->projectName) {
-            $this->changeDirectory('../');
+            chdir('../');
         }
 
         $log = $this->saveLog($this->projectName, "npm-install", $out);
