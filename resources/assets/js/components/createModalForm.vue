@@ -34,8 +34,6 @@
     </div>
 
     <div class="steps2and3" v-show="step > 1">
-      <h4 class="text-info text-center" v-if="showSelectTemplate">Select Template</h4>
-
       <div class="step2" v-show="showSelectTemplate">
         <b-form-group
           description="Pick a Template"
@@ -59,11 +57,6 @@
       <div class="step3" v-show="showOptions">
         <div v-if="showOptions">
           <v-console :output="output"/>
-          <h4 class="text-info text-center" v-if="options.length">Options
-<!--             <span class="text-center" v-if="fetchingOptions">
-              <i class="fa fa-spinner fa-spin fa-fw text-primary"></i>
-            </span>
- -->          </h4>
 
           <template v-for="(option, i) in options">
             <p class="option-box" v-if="!isNative(i) && option.type === 'confirm'">

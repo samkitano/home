@@ -161,7 +161,7 @@ class VueManager extends ProjectBuilder implements Manager
      */
     protected static function downloadTemplate($template)
     {
-        Console::broadcast("Downloading template '{$template}'");
+        Console::broadcast("Downloading template '{$template}'...");
 
         $download = FetchesTemplates::fetch($template);
 
@@ -231,7 +231,8 @@ class VueManager extends ProjectBuilder implements Manager
 
         $meta = static::getMeta($template);
 
-        Console::broadcast("Ready to rock! Awaiting options...");
+        Console::broadcast("Ready to rock!");
+        Console::broadcast("Awaiting options... Pick your needs and hit [Create].", 'info');
         Console::broadcast("_CURSOR_");
 
         return array_merge(isset($meta['prompts']) ? $meta['prompts'] : [], static::$prompts);
@@ -306,6 +307,16 @@ class VueManager extends ProjectBuilder implements Manager
     {
         $local_v = static::getLocalTemplateVersion($template);
         $remote_v = static::getRemoteVersion($template);
+
+        if (! $local_v || ! $remote_v) {
+            Console::broadcast(
+                "Unable to check template '{$template}' versions. Will download from master branch.",
+                'warning'
+            );
+
+            return false;
+        }
+
         $match = static::compareVersions([$local_v, $remote_v]);
 
         return $match;
@@ -315,8 +326,13 @@ class VueManager extends ProjectBuilder implements Manager
     {
         $remote = FetchesTemplates::latestVersion($template);
 
-        if ($remote === null) {
+        if (null === $remote) {
             throw new ProjectManagerException("Error obtaining template '{$template}' latest version from Gthub.");
+        }
+
+        if (! $remote) {
+            Console::broadcast("Template '{$template}' has no versioning in Github.");
+            return false;
         }
 
         Console::broadcast("Latest template '{$template}' version = v{$remote}");
@@ -338,7 +354,8 @@ class VueManager extends ProjectBuilder implements Manager
         $file = $tplPath.DIRECTORY_SEPARATOR.'package.json';
 
         if (! file_exists($file)) {
-            throw new ProjectManagerException("Can not find '{$file}'");
+            Console::broadcast("Local template '{$template}' has no package.json file.");
+            return false;
         }
 
         $pj = json_decode(file_get_contents($file));

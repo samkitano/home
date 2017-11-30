@@ -1,17 +1,17 @@
-<style>
-.form-control-sm.custom-select {
-  padding: 0.25rem 0.5rem /* bootstrap select sm fix */
-}
-.option-box {
-  margin-bottom: 0
-}
-.blink {
-  color: white;
-  animation: blinker .8s linear infinite
-}
-@keyframes blinker {  
-  50% { opacity: 0 }
-}
+<style lang="css">
+  .form-control-sm.custom-select {
+    padding: 0.25rem 0.5rem /* bootstrap select sm fix */
+  }
+  .option-box {
+    margin-bottom: 0
+  }
+  .blink {
+    color: white;
+    animation: blinker .8s linear infinite
+  }
+  @keyframes blinker {  
+    50% { opacity: 0 }
+  }
 </style>
 
 
