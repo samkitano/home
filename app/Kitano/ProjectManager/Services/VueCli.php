@@ -23,6 +23,9 @@ class VueCli extends VueManager
     /** @var \RecursiveIteratorIterator */
     protected $currentFile;
 
+    /** @var array|null */
+    protected $filters;
+
     /** @var array */
     protected $toCopy = [];
 
@@ -52,6 +55,7 @@ class VueCli extends VueManager
     public function make()
     {
         $this->templatesPath = public_path(env('VUE_TEMPLATES', ''));
+        $this->filters = $this->meta['filters'] ?? null;
 
         Console::broadcast("Converting Template '{$this->template}'...");
 
@@ -73,7 +77,7 @@ class VueCli extends VueManager
 
     /**
      * Build Twig Template
-     *
+     * TODO: meta->filters
      * @return $this
      */
     protected function execute()
