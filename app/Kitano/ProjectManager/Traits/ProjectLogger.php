@@ -20,13 +20,20 @@ trait ProjectLogger
      */
     public function saveLog($name, $prefix, $output)
     {
+        $dir = env('SITES_DIR');
+        $logs = "{$dir}/logs";
+
+        if (! is_dir($logs)) {
+            mkdir($logs);
+        }
+
         $date = date("d_m_Y_H_i_s");
-        $file = "{$prefix}_{$name}_{$date}.log";
+        $file = "{$logs}/{$prefix}_{$name}_{$date}.log";
         $f = file_put_contents($file, $output);
 
         if ($f !== false) {
             $size = strval($f);
-            return "Log file created:'".getcwd().DIRECTORY_SEPARATOR.$file."' -> {$size} bytes";
+            return "Log file created:'".$logs.DIRECTORY_SEPARATOR.$file."' -> {$size} bytes";
         } else {
             return "Could NOT write Log File {$file}!";
         }
