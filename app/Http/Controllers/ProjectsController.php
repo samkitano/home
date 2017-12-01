@@ -123,6 +123,15 @@ class ProjectsController extends Controller
         ];
     }
 
+    /**
+     * Get options for project
+     *
+     * @param string $type  Project type
+     * @param string $tpl   Template name
+     *
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
+     */
     public function getOptions($type, $tpl)
     {
         $res = $this->builder->getTemplateOptions(
