@@ -13,6 +13,7 @@ const forbidden = [
     'COM7',
     'COM8',
     'COM9',
+    'LOGS',
     'LPT1',
     'LPT2',
     'LPT3',
@@ -21,7 +22,9 @@ const forbidden = [
     'LPT6',
     'LPT7',
     'LPT8',
-    'LPT9'
+    'LPT9',
+    'TMP',
+    'TEMP'
 ]
 
 export default forbidden
