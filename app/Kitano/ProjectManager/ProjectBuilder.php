@@ -14,71 +14,27 @@ class ProjectBuilder
 {
     use HandlesComposer, HandlesNpm, ProjectLogger;
 
-    /**
-     * Will hold base dir from $dir path
-     *
-     * @var string
-     */
-    protected $baseDir = '';
-
-    /**
-     * Path to projects folder
-     * Set up in .env file
-     *
-     * @var string
-     */
-    protected $dir;
-
-    /**
-     * Local user name
-     * set up in .env
-     *
-     * @var string
-     */
-    protected $localUser = '';
+    /** @var \App\Kitano\ProjectManager\Contracts\Manager */
+    protected $manager;
 
     /** @var array */
     protected $options;
 
-    /**
-     * Create new Project Name
-     *
-     * @var string
-     */
+    /** @var string */
     protected $projectName;
 
     /** @var string */
     protected $projectType;
 
-    /**
-     * Determines if npm dependencies will be installed
-     *
-     * @var bool
-     */
-    protected $newProjectRunNpm = true;
-
-    protected $projectDir;
-
     /** @var \Illuminate\Http\Request $request */
     protected $request;
-
-    /** @var bool */
-    protected $runNpm;
 
     /** @var string */
     protected $template;
 
-    /**
-     * Path to local vue-cli templates
-     *
-     * @var string
-     */
-    protected $tplPath;
-
 
     /**
      * @param Request $request
-     * @TODO: overbloated. refactor.
      */
     public function __construct(Request $request)
     {
@@ -86,52 +42,12 @@ class ProjectBuilder
 
         $this->projectName = $request->input('name');
         $this->projectType = $request->input('type');
-        $this->dir = env('SITES_DIR');
-        $this->projectDir = env('SITES_DIR').DIRECTORY_SEPARATOR.$request->input('name');
-        $this->baseDir = basename(env('SITES_DIR'));
-        $this->localUser = env('LOCAL_USER', getenv("username"));
-        $this->composerHome = env('COMPOSER_HOME', null);
-        $this->composerLocation = env('COMPOSER_LOCATION', null);
-        $this->vueLocation = env('VUE_LOCATION', null);
-        $this->runNpm = $request->has('runNpm') && $request->input('runNpm');
         $this->template = $request->input('template');
-        $this->tplPath = env('VUE_TEMPLATES') ? public_path(env('VUE_TEMPLATES')) : public_path();
 
         $this->options = array_except(
             $this->request->input(),
-            ['_verbose', '_method'/*, 'name'*/, 'type', 'runNpm', 'template']
+            ['_method', 'type', 'runNpm', 'template']
         );
-
-        $this->options['author'] = env('AUTHOR', 'Me');
-    }
-
-    /**
-     * Check if a project can be created
-     *
-     * @param string $name New Project Name
-     *
-     * @return array
-     */
-    public function canCreateProject($name)
-    {
-        if (is_dir($this->dir.DIRECTORY_SEPARATOR.$name)) {
-            return [
-                'status' => 422,
-                'message' => "Project '{$name}' already exists!",
-            ];
-        }
-
-        if (! is_writable($this->dir)) {
-            return [
-                'status' => 422,
-                'message' => "{$this->dir} is not writable!",
-            ];
-        }
-
-        return [
-            'status' => 200,
-            'message' => 'NAME OK. DIR IS WRITABLE. GOOD TO GO!',
-        ];
     }
 
     /**
@@ -142,26 +58,21 @@ class ProjectBuilder
      */
     public function create()
     {
-        $manager = __NAMESPACE__."\\Managers\\{$this->projectType}Manager";
-
-        if (! class_exists($manager)) {
-            throw new ProjectManagerException("{$this->projectType}Manager does not exist!");
-        }
-
-        $builder = new $manager($this->request);
+        $this->canCreateProject()
+             ->setManager();
 
         Console::broadcast("Building {$this->projectType} project '{$this->projectName}'.");
 
-        call_user_func([$builder, 'build']);
+        call_user_func([$this->manager, 'build']);
 
         Console::broadcast("{$this->projectType} Project '{$this->projectName}' Created!");
-        Console::broadcast("DONE!", 'success');
+        Console::broadcast("DONE!", 'info');
 
         $browser = new ProjectsBrowser($this->request);
 
         return [
             'status' => 200,
-            'message' => $browser->getSite($this->dir.DIRECTORY_SEPARATOR.$this->projectName),
+            'message' => $browser->getSite(env('SITES_DIR').DIRECTORY_SEPARATOR.$this->projectName),
         ];
     }
 
@@ -185,6 +96,15 @@ class ProjectBuilder
         return $res;
     }
 
+    /**
+     * Get template options
+     *
+     * @param string $type      Project Type
+     * @param string $template  Template Name
+     *
+     * @return mixed
+     * @throws FileNotFoundException
+     */
     public function getTemplateOptions($type, $template)
     {
         $manager = __NAMESPACE__."\\Managers\\{$type}Manager";
@@ -196,11 +116,11 @@ class ProjectBuilder
         return call_user_func($manager."::getPrompts", $template);
     }
 
-    public function getProjectsDir()
-    {
-        return env('SITES_DIR');
-    }
-
+    /**
+     * Common defaults for most managers
+     *
+     * @return array
+     */
     public function getBuilderDefaults()
     {
         return [
@@ -208,6 +128,46 @@ class ProjectBuilder
             'license' => env('DEFAULT_LICENSE', 'MIT'),
             'version' => env('DEFAULT_VERSION', '1.0.0'),
         ];
+    }
+
+    /**
+     * Check if a project can be created
+     *
+     * @return $this
+     * @throws ProjectManagerException
+     */
+    protected function canCreateProject()
+    {
+        $dir = env('SITES_DIR');
+
+        if (is_dir($dir.DIRECTORY_SEPARATOR.$this->projectName)) {
+            throw new ProjectManagerException("Project '{$this->projectName}' already exists!");
+        }
+
+        if (! is_writable($dir)) {
+            throw new ProjectManagerException("{$dir} is not writable!");
+        }
+
+        return $this;
+    }
+
+    /**
+     * Set creation manager
+     *
+     * @return $this
+     * @throws ProjectManagerException
+     */
+    protected function setManager()
+    {
+        $manager = __NAMESPACE__."\\Managers\\{$this->projectType}Manager";
+
+        if (! class_exists($manager)) {
+            throw new ProjectManagerException("{$this->projectType}Manager does not exist!");
+        }
+
+        $this->manager = new $manager($this->request);
+
+        return $this;
     }
 
     /**
@@ -223,15 +183,31 @@ class ProjectBuilder
         file_put_contents($file, $content);
     }
 
-    protected function getManagerTemplates($class)
+    /**
+     * Get templates for project
+     *
+     * @param string $type
+     *
+     * @return mixed
+     * @throws FileNotFoundException
+     */
+    protected function getManagerTemplates($type)
     {
-        $manager = __NAMESPACE__."\\Managers\\{$class}Manager";
+        $manager = __NAMESPACE__."\\Managers\\{$type}Manager";
 
         if (! class_exists($manager)) {
             throw new FileNotFoundException("{$manager} Class does not exist!");
         }
 
         return call_user_func($manager.'::getProjectTemplates');
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getProjectsDir()
+    {
+        return env('SITES_DIR');
     }
 
     /**
@@ -251,10 +227,10 @@ class ProjectBuilder
     }
 
     /**
-     * @return string
+     * @return mixed
      */
     protected function getLocalUser()
     {
-        return $this->localUser;
+        return env('LOCAL_USER');
     }
 }
