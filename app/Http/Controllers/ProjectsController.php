@@ -142,18 +142,4 @@ class ProjectsController extends Controller
     {
         //TODO
     }
-
-    /**
-     * Check if project can be created
-     *
-     * @param string $name
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function canCreateProject($name)
-    {
-        $res = $this->builder->canCreateProject($name);
-
-        return response()->json(['message' => $res['message']], $res['status']);
-    }
 }

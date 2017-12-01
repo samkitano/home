@@ -14,7 +14,6 @@
 Route::resource('/', 'ProjectsController')->only(['index', 'store',]);
 Route::post('fix', 'ProjectsController@fixPermissions');
 Route::post('destroy', 'ProjectsController@destroyProject');
-Route::get('can-create-project/{name}', 'ProjectsController@canCreateProject');
 Route::get('options/{type}/{tpl}', 'ProjectsController@getOptions');
 
 Route::get('t', 'TestController@index');
