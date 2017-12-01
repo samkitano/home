@@ -7,7 +7,7 @@ use Twig_Loader_Array;
 use RecursiveIteratorIterator;
 use RecursiveDirectoryIterator;
 use App\Kitano\ProjectManager\Managers\VueManager;
-use Illuminate\Contracts\Filesystem\FileNotFoundException;
+use App\Kitano\ProjectManager\PseudoConsole\Console;
 
 class VueCli extends VueManager
 {
@@ -37,7 +37,12 @@ class VueCli extends VueManager
         'md',
     ];
 
+    /** @var array */
     protected $results = [];
+
+    /** @var string|null */
+    protected $templatesPath;
+
 
     /**
      * Iterate Vue Cli Template files
@@ -46,9 +51,11 @@ class VueCli extends VueManager
      */
     public function make()
     {
-        $this->console->write("Converting Template '{$this->template}'...");
+        $this->templatesPath = env('VUE_TEMPLATES', public_path());
 
-        $templatePath = "{$this->tplPath}/{$this->template}/template";
+        Console::broadcast("Converting Template '{$this->template}'...");
+
+        $templatePath = "{$this->templatesPath}/{$this->template}/template";
 
         $iterator = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator(
@@ -134,8 +141,8 @@ class VueCli extends VueManager
         $src = $path ?? $this->compiled['path'];
 
         return str_replace(
-            $this->tplPath.DIRECTORY_SEPARATOR.$this->template.DIRECTORY_SEPARATOR.'template',
-            $this->dir.DIRECTORY_SEPARATOR.$this->projectName,
+            $this->templatesPath.DIRECTORY_SEPARATOR.$this->template.DIRECTORY_SEPARATOR.'template',
+            $this->getProjectsDir().DIRECTORY_SEPARATOR.$this->projectName,
             $src
         );
     }
