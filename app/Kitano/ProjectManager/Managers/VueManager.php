@@ -16,6 +16,20 @@ class VueManager extends ProjectBuilder implements Manager
     use FetchesTemplates;
 
     /**
+     * Files to build after compilation
+     *
+     * @var array|null
+     */
+    protected $files;
+
+    /**
+     * Template meta data
+     *
+     * @var null|array
+     */
+    protected $meta;
+
+    /**
      * Aditional prompts for manager
      *
      * @see App\Kitano\ProjectManager\Managers\LaravelManager $prompts
@@ -56,13 +70,6 @@ class VueManager extends ProjectBuilder implements Manager
         'simple' => 'https://github.com/vuejs-templates/simple',
     ];
 
-    /**
-     * Files to build after compilation
-     *
-     * @var array|null
-     */
-    protected $files;
-
 
     /**
      * Build the project
@@ -71,6 +78,8 @@ class VueManager extends ProjectBuilder implements Manager
      */
     public function build()
     {
+        $this->meta = static::getMeta($this->template);
+
         $converter = new VueCli($this->request);
 
         $this->files = $converter->make();
@@ -234,7 +243,7 @@ class VueManager extends ProjectBuilder implements Manager
         $decoded = static::decodeMeta(file_get_contents($metaFile));
 
         if (null === $decoded) {
-            throw new ProjectManagerException("Can not decode file '{$metaFile}'!");
+            throw new ProjectManagerException("Error decoding '{$metaFile}'!");
         }
 
         return $decoded;
