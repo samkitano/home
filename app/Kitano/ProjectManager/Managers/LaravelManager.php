@@ -4,6 +4,7 @@ namespace App\Kitano\ProjectManager\Managers;
 
 use App\Kitano\ProjectManager\ProjectBuilder;
 use App\Kitano\ProjectManager\Contracts\Manager;
+use App\Kitano\ProjectManager\Traits\ProjectLogger;
 use App\Kitano\ProjectManager\PseudoConsole\Console;
 use App\Kitano\ProjectManager\Exceptions\ProjectManagerException;
 
@@ -64,7 +65,7 @@ class LaravelManager extends ProjectBuilder implements Manager
     {
         Console::broadcast("Installation finished. Writing Installation Log...");
 
-        $this->writeLog("installation", $this->getLog());
+        $this->writeLog("installation", ProjectLogger::getLog());
     }
 
     /**
@@ -79,9 +80,7 @@ class LaravelManager extends ProjectBuilder implements Manager
 
         Console::broadcast("Running '{$this->composerCommand}'");
 
-        $baseDir = basename(env('SITES_DIR'));
-
-        chdir("../../{$baseDir}");
+        chdir(env('SITES_DIR'));
 
         $out = $this->executeComposerCommand();
 
@@ -104,13 +103,7 @@ class LaravelManager extends ProjectBuilder implements Manager
      */
     protected function writeLog($prefix, $content)
     {
-        $cwd = getcwd(); //TODO: refactor: create a Logs dir
-
-        if (basename($cwd) === $this->projectName) {
-            chdir('../');
-        }
-
-        $logged = $this->saveLog($this->projectName, $prefix, $content);
+        $logged = ProjectLogger::saveLog($this->projectName, $prefix, $content);
 
         Console::broadcast($logged);
     }
@@ -126,11 +119,7 @@ class LaravelManager extends ProjectBuilder implements Manager
 
         Console::broadcast('Running npm intall.');
 
-        $cwd = getcwd();
-
-        if (basename($cwd) !== $this->projectName) {
-            chdir($this->dir.DIRECTORY_SEPARATOR.$this->projectName);
-        }
+        chdir(env('SITES_DIR').DIRECTORY_SEPARATOR.$this->projectName);
 
         $p = getenv('PATH');
         $localUser = env('LOCAL_USER', getenv("username"));
