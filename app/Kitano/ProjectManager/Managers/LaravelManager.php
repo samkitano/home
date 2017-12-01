@@ -79,7 +79,9 @@ class LaravelManager extends ProjectBuilder implements Manager
 
         Console::broadcast("Running '{$this->composerCommand}'");
 
-        chdir("../../{$this->baseDir}");
+        $baseDir = basename(env('SITES_DIR'));
+
+        chdir("../../{$baseDir}");
 
         $out = $this->executeComposerCommand();
 
@@ -118,7 +120,7 @@ class LaravelManager extends ProjectBuilder implements Manager
      */
     protected function runNpm()
     {
-        if (! $this->runNpm) {
+        if (! $this->request->has('runNpm') || ! $this->request->input('runNpm')) {
             return $this;
         }
 
@@ -131,9 +133,10 @@ class LaravelManager extends ProjectBuilder implements Manager
         }
 
         $p = getenv('PATH');
+        $localUser = env('LOCAL_USER', getenv("username"));
 
         if (PHP_OS === 'Darwin') {
-            putenv("PATH=/Users/{$this->localUser}/.npm-packages/bin:{$p}:/usr/local/bin:/usr/local/git/bin/");
+            putenv("PATH=/Users/{$localUser}/.npm-packages/bin:{$p}:/usr/local/bin:/usr/local/git/bin/");
 
             // IMPORTANT: /Library/Webserver permissions must be set to ALL users
             exec('sudo chown -R $USER:$(id -gn $USER) /Library/WebServer/.config');
