@@ -19,7 +19,7 @@ class ProjectManagerExceptionHandler extends Handler
         if ($exception instanceof ProjectManagerException) {
             // save log
             ProjectLogger::addEntry($exception->getMessage());
-            ProjectLogger::saveErrorLog(env('SITES_DIR'));
+            ProjectLogger::saveErrorLog();
         }
 
         parent::report($exception);
