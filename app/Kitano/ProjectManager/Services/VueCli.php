@@ -51,7 +51,7 @@ class VueCli extends VueManager
      */
     public function make()
     {
-        $this->templatesPath = env('VUE_TEMPLATES', public_path());
+        $this->templatesPath = public_path(env('VUE_TEMPLATES', ''));
 
         Console::broadcast("Converting Template '{$this->template}'...");
 
