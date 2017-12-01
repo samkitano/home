@@ -23,22 +23,6 @@ trait HandlesComposer
      */
     protected $composerCommand = '';
 
-    /**
-     * COMPOSER_HOME env var
-     * set up in .env
-     *
-     * @var null|string
-     */
-    protected $composerHome = null;
-
-    /**
-     * Location of composer executable
-     * set up in .env
-     *
-     * @var null|string
-     */
-    protected $composerLocation = null;
-
 
     /**
      * Get composer required Laravel version
@@ -129,9 +113,11 @@ trait HandlesComposer
     {
         $input = $this->getRequestInput();
 
-        $ch = isset($this->composerHome) ? "COMPOSER_HOME={$this->composerHome} " : '';
+        $h = env('COMPOSER_HOME', '');
+        $ch = "COMPOSER_HOME={$h} ";
+        $l = env('COMPOSER_LOCATION', '');
 
-        $this->composerCommand = "{$ch}php {$this->composerLocation}".
+        $this->composerCommand = "{$ch}php {$l}".
             " {$command}".
             " {$input['name']} 2>&1";
     }
