@@ -201,6 +201,58 @@ class ProjectBuilder
 
         return call_user_func($manager.'::getProjectTemplates');
     }
+    /**
+     * Run npm install
+     *
+     * @return $this
+     * @throws ProjectManagerException
+     */
+    protected function runNpm()
+    {
+        if (! $this->request->has('runNpm') || ! $this->request->input('runNpm')) {
+            return $this;
+        }
+
+        Console::broadcast('Running npm intall.');
+
+        chdir($this->getProjectsDir().DIRECTORY_SEPARATOR.$this->projectName);
+
+        $p = getenv('PATH');
+
+        if (PHP_OS === 'Darwin') {
+            putenv("PATH=/Users/{$this->getLocalUser()}/.npm-packages/bin:{$p}:/usr/local/bin:/usr/local/git/bin/");
+
+            // IMPORTANT: /Library/Webserver permissions must be set to ALL users
+            exec('sudo chown -R $USER:$(id -gn $USER) /Library/WebServer/.config');
+        }
+
+        $this->setNpmCommand();
+
+        $out = $this->runNpmCommand();
+
+        if (null === $out) {
+            throw new ProjectManagerException('Error running npm!');
+        }
+
+        Console::broadcast("NPM finished. Writing Log.");
+
+        $this->writeLog("npm-install", $out);
+
+        return $this;
+    }
+
+    /**
+     * Write log files
+     *
+     * @param string $prefix
+     * @param string $content
+     */
+    protected function writeLog($prefix, $content)
+    {
+        $logged = ProjectLogger::saveLog($this->projectName, $prefix, $content);
+
+        Console::broadcast($logged);
+    }
 
     /**
      * @return mixed
