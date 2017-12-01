@@ -18,7 +18,7 @@ trait ProjectLogger
      *
      * @return string
      */
-    public function saveLog($name, $prefix, $output)
+    public static function saveLog($name, $prefix, $output)
     {
         $dir = env('SITES_DIR');
         $logs = "{$dir}/logs";
@@ -28,7 +28,7 @@ trait ProjectLogger
         }
 
         $date = date("d_m_Y_H_i_s");
-        $file = "{$logs}/{$prefix}_{$name}_{$date}.log";
+        $file = "{$logs}/{$name}_{$prefix}_{$date}.log";
         $f = file_put_contents($file, $output);
 
         if ($f !== false) {
@@ -56,18 +56,22 @@ trait ProjectLogger
      *
      * @return array
      */
-    public function getLog()
+    public static function getLog()
     {
         return static::$log;
     }
 
     /**
      * Save an error log
-     *
-     * @param string $where Destination path
      */
-    public static function saveErrorLog($where)
+    public static function saveErrorLog()
     {
-        file_put_contents($where.DIRECTORY_SEPARATOR.'error.log', static::$log);
+        $logs = env('SITES_DIR').'/logs';
+
+        if (! is_dir($logs)) {
+            mkdir($logs);
+        }
+
+        file_put_contents($logs.DIRECTORY_SEPARATOR.'error.log', static::$log);
     }
 }
