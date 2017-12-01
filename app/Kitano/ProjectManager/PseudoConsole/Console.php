@@ -8,35 +8,15 @@ use App\Kitano\ProjectManager\Traits\ProjectLogger;
 class Console
 {
     /**
-     * Send message to pseudo-console
+     * Emit and log a message for pseudo-console
      *
-     * @param string        $msg
-     * @param bool|string   $verbose
-     * @param string|null   $type
+     * @param string      $msg    Message to broadcast
+     * @param null|string $type   Type: info|success|error
      */
-    public function write($msg, $verbose = true, $type = null)
-    {
-        if (($type === null) && (! is_bool($verbose))) {
-            $type = $verbose;
-            $verbose = true;
-        }
-
-        ProjectLogger::addEntry($msg);
-
-        if ($verbose) {
-            if (isset($type)) {
-                $msg = json_encode([
-                    'type' => $type,
-                    'message' => $msg,
-                ]);
-            }
-
-            static::broadcast($msg);
-        }
-    }
-
     public static function broadcast($msg, $type = null)
     {
+        ProjectLogger::addEntry($msg);
+
         if (isset($type)) {
             $msg = json_encode([
                 'type' => $type,
