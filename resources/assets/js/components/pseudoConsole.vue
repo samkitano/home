@@ -36,6 +36,12 @@
 
     watch: {
       output () {
+        /**
+         * One of those akward situations where we have to actually
+         * slow down program execution on purpose.
+         * We need this small timeout in order to allow our console to scroll down.
+         * otherwise, output could be so fast that it will not do so.
+         */
         setTimeout(() => {
           this.$refs.output.scrollTop = this.$refs.output.scrollHeight
         }, 10)
