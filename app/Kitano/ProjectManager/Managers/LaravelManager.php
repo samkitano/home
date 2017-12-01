@@ -4,10 +4,34 @@ namespace App\Kitano\ProjectManager\Managers;
 
 use App\Kitano\ProjectManager\ProjectBuilder;
 use App\Kitano\ProjectManager\Contracts\Manager;
+use App\Kitano\ProjectManager\PseudoConsole\Console;
 use App\Kitano\ProjectManager\Exceptions\ProjectManagerException;
 
 class LaravelManager extends ProjectBuilder implements Manager
 {
+    /**
+     * Contains optional prompts for building seup
+     * Array must comply with this template:
+     *
+     * 'option name' => [
+     *      'type' => 'confirm|list|string', *required*
+     *      'message' => 'a message string (feedback in frontend)', *required*
+     *      'label' => 'a label for the option',
+     *      'required' => true|false,
+     *      'default' => 'default value for option if not required',
+     *      'when' => 'condition for type=list where condition is name of option, (ie: "lint")',
+     *      'choices' => [
+     *                      [
+     *                          'name' => 'choice name or description (feedback on frontend)',
+     *                          'value' => 'choice value',
+     *                          'short' => 'choice name (option name in frontend),
+     *                      ],
+     *                      ...
+     *                  ]
+     *              ]
+     *
+     * @var array
+     */
     protected static $prompts = [
         'runNpm' => [
             'type' => 'confirm',
@@ -15,23 +39,47 @@ class LaravelManager extends ProjectBuilder implements Manager
         ]
     ];
 
+    /**
+     * Available templates for this manager
+     *
+     * @var array
+     */
+    protected static $templates = [];
+
 
     /**
-     * Create a laravel Project
-     *
-     * @todo: Change project name & description in composer.json
+     * Create a Laravel Project
      */
     public function build()
     {
-        $this->console->write("Running composer...");
+        $this->runComposer()
+             ->runNpm()
+             ->finish();
+    }
 
+    /**
+     * Wrap up
+     */
+    protected function finish()
+    {
+        Console::broadcast("Installation finished. Writing Installation Log...");
+
+        $this->writeLog("installation", $this->getLog());
+    }
+
+    /**
+     * Set and run composer
+     *
+     * @return $this
+     * @throws ProjectManagerException
+     */
+    protected function runComposer()
+    {
         $this->setComposerCommand('create-project --ignore-platform-reqs --prefer-dist laravel/laravel');
 
-        $this->console->write("COMPOSER COMMAND is: '{$this->composerCommand}'", $this->verbose);
+        Console::broadcast("Running '{$this->composerCommand}'");
 
         chdir("../../{$this->baseDir}");
-
-        $this->console->write("Executing composer command. Please Wait...", $this->verbose);
 
         $out = $this->executeComposerCommand();
 
@@ -39,35 +87,44 @@ class LaravelManager extends ProjectBuilder implements Manager
             throw new ProjectManagerException('Error running composer!');
         }
 
-        $this->console->write("Composer finished. Writing Composer Log...", $this->verbose);
+        Console::broadcast("Composer finished. Writing Log.");
 
-        $logged = $this->saveLog($this->projectName, "composer-create-project", $out);
+        $this->writeLog("composer-create-project", $out);
 
-        $this->console->write($logged);
-
-        if ($this->runNpm) {
-            $this->runNpm();
-        }
-
-        $this->console->write("Composer finished. Writing Installation Log...", $this->verbose);
-
-        $logged = $this->saveLog($this->projectName, "installation", $this->getLog());
-
-        $this->console->write($logged);
-
-        return true;
+        return $this;
     }
 
     /**
-     * prepare to run npm command
+     * Write log files
+     *
+     * @param string $prefix
+     * @param string $content
+     */
+    protected function writeLog($prefix, $content)
+    {
+        $cwd = getcwd(); //TODO: refactor: create a Logs dir
+
+        if (basename($cwd) === $this->projectName) {
+            chdir('../');
+        }
+
+        $logged = $this->saveLog($this->projectName, $prefix, $content);
+
+        Console::broadcast($logged);
+    }
+
+    /**
+     * Set and run npm install if required
      */
     protected function runNpm()
     {
-        $this->console->write('Running npm...');
+        if (! $this->runNpm) {
+            return $this;
+        }
+
+        Console::broadcast('Running npm intall.');
 
         $cwd = getcwd();
-
-        $this->console->write('CWD: '.$cwd, $this->verbose);
 
         if (basename($cwd) !== $this->projectName) {
             chdir($this->dir.DIRECTORY_SEPARATOR.$this->projectName);
@@ -75,14 +132,8 @@ class LaravelManager extends ProjectBuilder implements Manager
 
         $p = getenv('PATH');
 
-        $this->console->write("Path is {$p}", $this->verbose);
-
         if (PHP_OS === 'Darwin') {
             putenv("PATH=/Users/{$this->localUser}/.npm-packages/bin:{$p}:/usr/local/bin:/usr/local/git/bin/");
-
-            $pp = getenv('PATH');
-
-            $this->console->write("NEW Path is {$pp}", $this->verbose);
 
             // IMPORTANT: /Library/Webserver permissions must be set to ALL users
             exec('sudo chown -R $USER:$(id -gn $USER) /Library/WebServer/.config');
@@ -90,27 +141,17 @@ class LaravelManager extends ProjectBuilder implements Manager
 
         $this->setNpmCommand();
 
-        $this->console->write("Executing npm command. Please Wait...", $this->verbose);
-
         $out = $this->runNpmCommand();
 
         if (null === $out) {
             throw new ProjectManagerException('Error running npm!');
         }
 
-        $this->console->write("NPM finished. Writing Installation Log File", $this->verbose);
+        Console::broadcast("NPM finished. Writing Log.");
 
-        $cwd = getcwd();
+        $this->writeLog("npm-install", $out);
 
-        if (basename($cwd) === $this->projectName) {
-            chdir('../');
-        }
-
-        $log = $this->saveLog($this->projectName, "npm-install", $out);
-
-        $this->console->write($log);
-
-        return true;
+        return $this;
     }
 
     /**
@@ -128,6 +169,6 @@ class LaravelManager extends ProjectBuilder implements Manager
      */
     public static function getProjectTemplates()
     {
-        return [];
+        return static::$templates;
     }
 }
