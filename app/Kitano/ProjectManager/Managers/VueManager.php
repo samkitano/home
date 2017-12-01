@@ -6,6 +6,7 @@ use vierbergenlars\SemVer\version;
 use App\Kitano\ProjectManager\ProjectBuilder;
 use App\Kitano\ProjectManager\Services\VueCli;
 use App\Kitano\ProjectManager\Contracts\Manager;
+use App\Kitano\ProjectManager\Traits\ProjectLogger;
 use App\Kitano\ProjectManager\PseudoConsole\Console;
 use App\Kitano\ProjectManager\Traits\FetchesTemplates;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
@@ -15,6 +16,12 @@ class VueManager extends ProjectBuilder implements Manager
 {
     use FetchesTemplates;
 
+    /**
+     * Aditional prompts for manager
+     *
+     * @see App\Kitano\ProjectManager\Managers\LaravelManager $prompts
+     * @var array
+     */
     protected static $prompts = [
         'runNpm' => [
             'type' => 'confirm',
@@ -22,6 +29,11 @@ class VueManager extends ProjectBuilder implements Manager
         ]
     ];
 
+    /**
+     * Existing template names
+     *
+     * @var array
+     */
     protected static $templateNames = [
         'webpack',
         'webpack-simple',
@@ -45,6 +57,11 @@ class VueManager extends ProjectBuilder implements Manager
         'simple' => 'https://github.com/vuejs-templates/simple',
     ];
 
+    /**
+     * Files to build after compilation
+     *
+     * @var array|null
+     */
     protected $files;
 
 
@@ -59,11 +76,8 @@ class VueManager extends ProjectBuilder implements Manager
 
         $this->files = $converter->make();
 
-        $this->buildFiles();
-
-        if ($this->runNpm) {
-            $this->runNpm();
-        }
+        $this->buildFiles()
+             ->runNpm();
     }
 
     /**
@@ -95,11 +109,62 @@ class VueManager extends ProjectBuilder implements Manager
                 file_put_contents($file['dest'].DIRECTORY_SEPARATOR.$file['file'], $file['content']);
             }
         }
+
+        return $this;
     }
 
+    /**
+     * Run npm install
+     * TODO: DRY - move to parent
+     * @return $this
+     * @throws ProjectManagerException
+     */
     protected function runNpm()
     {
-        // TODO
+        if (! $this->request->has('runNpm') || ! $this->request->input('runNpm')) {
+            return $this;
+        }
+
+        Console::broadcast('Running npm intall.');
+
+        chdir($this->getProjectsDir().DIRECTORY_SEPARATOR.$this->projectName);
+
+        $p = getenv('PATH');
+
+        if (PHP_OS === 'Darwin') {
+            putenv("PATH=/Users/{$this->getLocalUser()}/.npm-packages/bin:{$p}:/usr/local/bin:/usr/local/git/bin/");
+
+            // IMPORTANT: /Library/Webserver permissions must be set to ALL users
+            exec('sudo chown -R $USER:$(id -gn $USER) /Library/WebServer/.config');
+        }
+
+        $this->setNpmCommand();
+
+        $out = $this->runNpmCommand();
+
+        if (null === $out) {
+            throw new ProjectManagerException('Error running npm!');
+        }
+
+        Console::broadcast("NPM finished. Writing Log.");
+
+        $this->writeLog("npm-install", $out);
+
+        return $this;
+    }
+
+    /**
+     * TODO: DRY - move to parent
+     * Write log files
+     *
+     * @param string $prefix
+     * @param string $content
+     */
+    protected function writeLog($prefix, $content)
+    {
+        $logged = ProjectLogger::saveLog($this->projectName, $prefix, $content);
+
+        Console::broadcast($logged);
     }
 
     /**
@@ -168,7 +233,7 @@ class VueManager extends ProjectBuilder implements Manager
      */
     protected function getTemplatesPath()
     {
-        return $this->tplPath;
+        return env('VUE_TEMPLATES') ? public_path(env('VUE_TEMPLATES')) : public_path();
     }
 
     /**
@@ -301,7 +366,7 @@ class VueManager extends ProjectBuilder implements Manager
      */
     protected static function getLocalTemplateVersion($template)
     {
-        $tplPath = public_path(env('VUE_TEMPLATES')).DIRECTORY_SEPARATOR.$template;
+        $tplPath = public_path(env('VUE_TEMPLATES', '')).DIRECTORY_SEPARATOR.$template;
         $file = $tplPath.DIRECTORY_SEPARATOR.'package.json';
 
         if (! file_exists($file)) {
