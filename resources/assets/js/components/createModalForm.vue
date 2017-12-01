@@ -195,6 +195,11 @@
       },
       /**
        * Create the project
+       * TODO: Implement error management
+       * TODO: Reset modal after finish
+       * TODO: hide stuff in modal when creating
+       * TODO: move create and cancel buttons to header
+       * TODO: move spinner to footer
        */
       create () {
         Bus.$emit('working', true)
@@ -205,6 +210,27 @@
         for (let item in this.fields) {
           this.sendOutput(`${item}: ${this.fields[item]}`)
         }
+
+        let payload = {
+          _method: 'POST'
+        }
+
+        Object.assign(payload, this.fields)
+
+        axios
+          .post(`/`, payload)
+          .then((r) => {
+            this.sites.push(r.data.site)
+            Bus.$emit('done', true)
+            Bus.$emit('working', false)
+            this.sendOutput(' ')
+          })
+          .catch((e) => {
+            Bus.$emit('done', true)
+            Bus.$emit('working', false)
+            this.sendOutput(JSON.stringify({ message: e.response.data.message, type: 'error' }))
+            this.sendOutput(' ')
+          })
       },
       /**
        * Fetch template options from API
