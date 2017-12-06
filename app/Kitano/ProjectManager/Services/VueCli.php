@@ -143,8 +143,8 @@ class VueCli extends VueManager
                     continue;
                 }
             }
-
-            $base = $starFix = str_replace('/**/*', '', $fullFilterPath);
+ixed bug
+            $base = str_replace('/**/*', '', $fullFilterPath);
             $i = new RecursiveIteratorIterator(
                 new RecursiveDirectoryIterator(
                     $base,
