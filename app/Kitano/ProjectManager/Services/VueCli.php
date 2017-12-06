@@ -26,6 +26,13 @@ class VueCli extends VueManager
     /** @var array|null */
     protected $filters;
 
+    /**
+     * Template meta data
+     *
+     * @var null|array
+     */
+    protected $meta;
+
     /** @var array */
     protected $toCopy = [];
 
@@ -47,6 +54,7 @@ class VueCli extends VueManager
     protected $templatesPath;
 
 
+
     /**
      * Iterate Vue Cli Template files
      *
@@ -54,6 +62,7 @@ class VueCli extends VueManager
      */
     public function make()
     {
+        $this->meta = parent::getMeta($this->template);
         $this->templatesPath = public_path(env('VUE_TEMPLATES', ''));
         $this->filters = $this->meta['filters'] ?? null;
 
@@ -72,21 +81,27 @@ class VueCli extends VueManager
             $this->execute();
         }
 
+        $this->mergeCopies();
+
         return $this->results;
     }
 
     /**
      * Build Twig Template
-     * TODO: meta->filters
+     *
      * @return $this
      */
     protected function execute()
     {
+        if (! $this->fileFilter()) {
+            return $this;
+        }
+
         $fc = file_get_contents($this->currentFile);
+        $ext = $this->currentFile->getExtension();
 
         $this->currentContent = str_replace(PHP_EOL, '_NEW_LINE_', $fc);
 
-        $ext = $this->currentFile->getExtension();
         $copy = in_array($ext, $this->skipExtensions) || ! $this->hasMustaches($this->currentContent);
 
         $this->compiled['name'] = basename($this->currentFile);
@@ -102,8 +117,109 @@ class VueCli extends VueManager
              ->render()
              ->fixLineBreaks()
              ->addResults();
+    }
 
-        return $this;
+    /**
+     * Checks if current file is filtered
+     *
+     * @return bool
+     */
+    protected function fileFilter()
+    {
+        if (! isset($this->filters)) {
+            return true;
+        }
+
+        $fullCurrentPath = $this->currentFile->getRealPath();
+        $filterKeys = array_keys($this->filters);
+
+        foreach ($filterKeys as $path) {
+            $fullFilterPath = $this->templatesPath."/{$this->template}/template/{$path}";
+
+            if (strpos($path, '*') === false) {
+                if ($fullCurrentPath === $fullFilterPath) {
+                    return $this->evalFilter($this->filters[$path]);
+                } else {
+                    continue;
+                }
+            }
+
+            $base = $starFix = str_replace('/**/*', '', $fullFilterPath);
+            $i = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator(
+                    $base,
+                    RecursiveDirectoryIterator::SKIP_DOTS
+                )
+            );
+
+            foreach ($i as $file) {
+                if ($file->getRealPath() === $fullCurrentPath) {
+                    return $this->evalFilter($this->filters[$path]);
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Evaluates filter expression
+     *
+     * @param string $filterString
+     *
+     * @return bool
+     */
+    protected function evalFilter($filterString)
+    {
+        $filter = trim($filterString); // just in case...
+
+        // no spaces, no need to break down
+        if (strpos($filter, ' ') === false) {
+            return $this->options[$filter] ?? false;
+        }
+
+        $exploded = explode(' ', $filter);
+        $expression = 'return ';
+
+        foreach ($exploded as $str) {
+            $expression .= $this->parseExpressionElement($str);
+        }
+
+        $expression = trim($expression).';';
+        $result = eval($expression);
+
+        return $result;
+    }
+
+    /**
+     * Convert js expression element in options into php to perform eval().
+     * Defaults for not parsed options in request are provided.
+     *
+     * @param string $el
+     *
+     * @return string
+     */
+    protected function parseExpressionElement($el)
+    {
+        if (preg_match('/[a-zA-Z]/', substr($el, 0, 1))) {
+            return '($this->options["'.$el.'"] ?? false)';
+        } else {
+            if (substr($el, 0, 1) === '(' && substr($el, 1, 1) !== '!') {
+                return '(($this->options["' . ltrim($el, '(') . '"] ?? false)';
+            } elseif (substr($el, 0, 1) === '(' && substr($el, 1, 1) === '!') {
+                return '((! $this->options["' . ltrim($el, '(') . '"] ?? false)';
+            } elseif (substr($el, 0, 1) === '!') {
+                if (strlen($el) > 1) {
+                    // only condition will be negated
+                    return '(! $this->options["' . ltrim($el, '!') . '"] ?? true)';
+                } else {
+                    // whole expression will be negated
+                    return '! ';
+                }
+            } else {
+                return ' ' . $el . ' ';
+            }
+        }
     }
 
     /**
@@ -119,7 +235,13 @@ class VueCli extends VueManager
             'src' => $this->compiled['path'],
             'dest' => $this->getDestinationPath(),
         ];
+    }
 
+    /**
+     * Merge files to copy into results array
+     */
+    protected function mergeCopies()
+    {
         foreach ($this->toCopy as $f) {
             $p = $f->getPath();
 
@@ -129,8 +251,6 @@ class VueCli extends VueManager
                 'dest' => $this->getDestinationPath($p),
             ];
         }
-
-        return $this;
     }
 
     /**
@@ -145,7 +265,7 @@ class VueCli extends VueManager
         $src = $path ?? $this->compiled['path'];
 
         return str_replace(
-            $this->templatesPath.DIRECTORY_SEPARATOR.$this->template.DIRECTORY_SEPARATOR.'template',
+            "{$this->templatesPath}/{$this->template}/template",
             $this->getProjectsDir().DIRECTORY_SEPARATOR.$this->projectName,
             $src
         );
