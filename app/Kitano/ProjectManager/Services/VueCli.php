@@ -145,6 +145,17 @@ class VueCli extends VueManager
             }
 
             $base = str_replace('/**/*', '', $fullFilterPath);
+
+            /**
+             * Workaround for inconsistencies in templates
+             * browserify looks for e2e tests and there is no e2e dir whatsoever
+             *
+             * PR: https://github.com/vuejs-templates/browserify/pull/53
+             */
+            if (! is_dir($base)) {
+                continue;
+            }
+
             $i = new RecursiveIteratorIterator(
                 new RecursiveDirectoryIterator(
                     $base,
