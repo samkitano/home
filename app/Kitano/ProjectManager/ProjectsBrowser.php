@@ -5,7 +5,6 @@ namespace App\Kitano\ProjectManager;
 use Illuminate\Http\Request;
 use App\Kitano\ProjectManager\Traits\HandlesNpm;
 use App\Kitano\ProjectManager\Traits\HandlesComposer;
-use Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException;
 
 class ProjectsBrowser
 {
@@ -26,7 +25,7 @@ class ProjectsBrowser
      */
     protected $hidden = ['home', 'phpmyadmin'];
 
-    /** @var Request */
+    /** @var \Illuminate\Http\Request */
     protected $request;
 
     /**
@@ -36,7 +35,6 @@ class ProjectsBrowser
      */
     protected $tld = 'dev';
     
-
 
     /**
      * @param Request $request
@@ -60,7 +58,8 @@ class ProjectsBrowser
     /**
      * Get info about given folder
      *
-     * @param $folder
+     * @param string $folder
+     *
      * @return bool
      */
     public function getSite($folder)
