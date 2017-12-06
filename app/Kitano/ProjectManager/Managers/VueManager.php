@@ -23,13 +23,6 @@ class VueManager extends ProjectBuilder implements Manager
     protected $files;
 
     /**
-     * Template meta data
-     *
-     * @var null|array
-     */
-    protected $meta;
-
-    /**
      * Aditional prompts for manager
      *
      * @see App\Kitano\ProjectManager\Managers\LaravelManager $prompts
@@ -78,8 +71,6 @@ class VueManager extends ProjectBuilder implements Manager
      */
     public function build()
     {
-        $this->meta = static::getMeta($this->template);
-
         $converter = new VueCli($this->request);
 
         $this->files = $converter->make();
@@ -344,15 +335,24 @@ class VueManager extends ProjectBuilder implements Manager
     {
         Console::broadcast("Decoding...");
 
-        if (substr($content, 0, 1) === '{') {                   // content is most likely JSON
+        $content = preg_replace("/\s+/S", " ", $content);
+
+        if (substr($content, 0, 1) === '{') {     // content is most likely JSON
             return json_decode($content, true);
         }
 
-        $start = strpos($content, '"prompts":');                // json starts here
-        $content = trim(substr($content, $start));
-        $content = str_replace('};', '', $content);             // strip ending brace
-        $content = trim(preg_replace('/\s\s+/', '', $content)); // strip spaces
-        $content = '{'.$content.'}';                            // add opening and closing braces
+        $start = strpos($content, '"prompts":');  // json starts here
+        $rest = substr($content, $start);
+
+        $startFilters = strpos($rest, '"filters"');
+        $restFilters = substr($rest, $startFilters);
+        $endFilters = strpos($restFilters, ' },') + 3;
+        $filters = stringBetweenPositions($restFilters, 0, $endFilters);
+        $tmp = str_replace($filters, '', $rest);
+
+        $end = strpos($tmp, ' } },') + 4;
+        $prompts = stringBetweenPositions($tmp, 0, $end);
+        $res = '{'.$filters.$prompts.'}';
 
         /**
          * Fix trailing commas (present in PWA template)
@@ -363,8 +363,8 @@ class VueManager extends ProjectBuilder implements Manager
          *
          * NOTE: I've decided to keep this fix, just in case.
          */
-        $content = str_replace(',},', '},', $content);
+        $res = str_replace(',},', '},', $res);
 
-        return json_decode($content, true);
+        return json_decode($res, true);
     }
 }
