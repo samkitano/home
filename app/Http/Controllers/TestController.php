@@ -6,29 +6,98 @@ use App\Kitano\ProjectManager\Managers\VueManager;
 use App\Kitano\ProjectManager\VueTemplate;
 use App\Kitano\ProjectManager\Services\VueCli;
 use Illuminate\Http\Request;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 
 class TestController extends Controller
 {
+    protected $options;
+
+/*    public function index()
+    {
+        $metaFile = public_path(env('VUE_TEMPLATES')).DIRECTORY_SEPARATOR.'simple'.DIRECTORY_SEPARATOR.'meta.json';
+
+        $meta = file_get_contents($metaFile);
+
+        $filters = VueManager::decodeMeta($meta);
+dd($filters);
+        $a = $filters['config/test.env.js'];
+        $b = $filters['.eslintignore'];
+
+        $this->options['unit'] = false;
+        $this->options['e2e'] = false;
+        $this->options['runner'] = 'jest';
+
+
+        $filter = "!unit && runner === 'jest'";
+        $exploded = explode(' ', $filter);
+        $expression = 'return ';
+
+        foreach ($exploded as $item) {
+            if (preg_match('/[a-zA-Z]/', substr($item, 0, 1))) {
+                $expression .= '($this->options["'.$item.'"] ?? false)';
+            } else {
+                if (substr($item, 0, 1) === '(' && substr($item, 1, 1) !== '!') {
+                    $expression .= '(($this->options["' . ltrim($item, '(') . '"] ?? false)';
+                } elseif (substr($item, 0, 1) === '(' && substr($item, 1, 1) === '!') {
+                    $expression .= '((! $this->options["' . ltrim($item, '(') . '"] ?? false)';
+                } elseif (substr($item, 0, 1) === '!') {
+                    if (strlen($item) > 1) {
+                        // only condition will be negated
+                        $expression .= '(! $this->options["' . ltrim($item, '!') . '"] ?? true)';
+                    } else {
+                        // whole expression will be negated
+                        $expression .= '! ';
+                    }
+                } else {
+                    $expression .= ' '.$item.' ';
+                }
+            }
+        }
+
+        $expression = trim($expression).';';
+dd($expression);
+$r = eval($expression);
+dd($r);
+
+        $filter = substr($filterString, 0, strlen($filterString) - 1);
+dump($filterString);
+dump($filter);
+dd($filter);
+        //$f = glob(public_path('downloads/vuejs-templates').'/**');
+dd($f);
+    }*/
     public function index()
     {
+//        $f = public_path(env('VUE_TEMPLATES')).DIRECTORY_SEPARATOR.'webpack/template/test/unit';
+//        $i = new RecursiveIteratorIterator(
+//            new RecursiveDirectoryIterator(
+//                $f,
+//                RecursiveDirectoryIterator::SKIP_DOTS
+//            )
+//        );
+//
+//        foreach ($i as $file) {
+//            $results[] = $file->getRealPath();
+//        }
+//
+//        dd($results);
+//        $r = new Request();
         $metaFile = public_path(env('VUE_TEMPLATES')).DIRECTORY_SEPARATOR.'pwa'.DIRECTORY_SEPARATOR.'meta.js';
 
         $meta = file_get_contents($metaFile);
 
-        dd(VueManager::decodeMeta($meta));
-    }
-/*    public function index()
-    {
-        $r = new Request();
-
+        $filters = VueManager::decodeMeta($meta);dd($filters);
         $r->template = 'webpack';
         $r->options = [
-            'name' => 'Sammy', 'router'=>true, 'unit'=>true, 'runner' => 'karma',
+            'name' => 'Sammy',
+            'router' => false
         ];
+        $r->meta = $filters;
         //dd(VueCli::getMeta('webpack'));
         $v = new VueCli($r);
         $v->make();
-    }*/
+    }
 
     /*public function index()
         {

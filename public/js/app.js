@@ -60734,6 +60734,7 @@ var consoleColors = {
      */
     cancelCreating: function cancelCreating() {
       Bus.$emit('resetForm', true);
+      Bus.$emit('done', false);
       this.showModal = false;
       this.type = '';
       this.formStep = 1;
@@ -61120,8 +61121,6 @@ var defaultFields = __webpack_require__(390);
 
     /**
      * Create the project
-     * TODO: Implement error management
-     * TODO: Reset modal after finish
      * TODO: hide stuff in modal when creating
      * TODO: move create and cancel buttons to header
      * TODO: move spinner to footer
@@ -61150,10 +61149,7 @@ var defaultFields = __webpack_require__(390);
         Bus.$emit('working', false);
         _this.sendOutput(' ');
       }).catch(function (e) {
-        Bus.$emit('done', true);
-        Bus.$emit('working', false);
-        _this.sendOutput(JSON.stringify({ message: e.response.data.message, type: 'error' }));
-        _this.sendOutput(' ');
+        _this.manageErrorResponse(e.response);
       });
     },
 
@@ -61176,9 +61172,12 @@ var defaultFields = __webpack_require__(390);
         _this2.fetchingOptions = false;
         _this2.renderOptions();
       }).catch(function (e) {
-        console.log(e);
+        _this2.manageErrorResponse(e.response);
         _this2.fetchingOptions = false;
       });
+    },
+    formatDataMessage: function formatDataMessage(res) {
+      return '<ul style="text-align:left;font-size:.8em;font-family:\'SFMono-Regular\', Menlo, Monaco, Consolas, \'Liberation Mono\', \'Courier New\', monospace;">\n                <li><strong>Message:</strong> ' + res.message + '</li>\n                <li><strong>File:</strong> ' + res.file + '</li>\n                <li><strong>Line:</strong> ' + res.line + '</li>\n              </ul>';
     },
 
     /**
@@ -61237,6 +61236,25 @@ var defaultFields = __webpack_require__(390);
      */
     isNative: function isNative(optionName) {
       return this.inArray(optionName, this.nativeOptions);
+    },
+
+    /**
+     * Manage error responses
+     *
+     * @param {object} res
+     */
+    manageErrorResponse: function manageErrorResponse(res) {
+      Bus.$emit('done', true);
+      Bus.$emit('working', false);
+
+      this.sendOutput(JSON.stringify({ message: res.data.message, type: 'error' }));
+      this.sendOutput(' ');
+
+      this.$swal({
+        title: res.data.exception ? res.data.exception : 'ERROR!',
+        html: this.formatDataMessage(res.data),
+        type: 'error'
+      });
     },
 
     /**
