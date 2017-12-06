@@ -110,6 +110,7 @@
        */
       cancelCreating () {
         Bus.$emit('resetForm', true)
+        Bus.$emit('done', false)
         this.showModal = false
         this.type = ''
         this.formStep = 1
