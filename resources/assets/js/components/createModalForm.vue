@@ -195,7 +195,6 @@
       },
       /**
        * Create the project
-       * TODO: Reset modal after finish
        * TODO: hide stuff in modal when creating
        * TODO: move create and cancel buttons to header
        * TODO: move spinner to footer
