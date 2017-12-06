@@ -195,7 +195,6 @@
       },
       /**
        * Create the project
-       * TODO: Implement error management
        * TODO: Reset modal after finish
        * TODO: hide stuff in modal when creating
        * TODO: move create and cancel buttons to header
@@ -226,10 +225,7 @@
             this.sendOutput(' ')
           })
           .catch((e) => {
-            Bus.$emit('done', true)
-            Bus.$emit('working', false)
-            this.sendOutput(JSON.stringify({ message: e.response.data.message, type: 'error' }))
-            this.sendOutput(' ')
+            this.manageErrorResponse(e.response)
           })
       },
       /**
@@ -252,9 +248,16 @@
             this.renderOptions()
           })
           .catch((e) => {
-            console.log(e)
+            this.manageErrorResponse(e.response)
             this.fetchingOptions = false
           })
+      },
+      formatDataMessage (res) {
+        return `<ul style="text-align:left;font-size:.8em;font-family:'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;">
+                  <li><strong>Message:</strong> ${res.message}</li>
+                  <li><strong>File:</strong> ${res.file}</li>
+                  <li><strong>Line:</strong> ${res.line}</li>
+                </ul>`
       },
       /**
        * Get field default value
@@ -309,6 +312,26 @@
        */
       isNative (optionName) {
         return this.inArray(optionName, this.nativeOptions)
+      },
+      /**
+       * Manage error responses
+       *
+       * @param {object} res
+       */
+      manageErrorResponse (res) {
+        Bus.$emit('done', true)
+        Bus.$emit('working', false)
+
+        this.sendOutput(JSON.stringify({ message: res.data.message, type: 'error' }))
+        this.sendOutput(' ')
+
+        this.$swal(
+          {
+            title: res.data.exception ? res.data.exception : 'ERROR!',
+            html: this.formatDataMessage(res.data),
+            type: 'error'
+          }
+        )
       },
       /**
        * Process fetched template options
