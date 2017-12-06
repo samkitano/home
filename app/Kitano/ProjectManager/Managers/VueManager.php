@@ -363,7 +363,7 @@ class VueManager extends ProjectBuilder implements Manager
          *
          * NOTE: I've decided to keep this fix, just in case.
          */
-        $res = str_replace(',},', '},', $res);
+        $res = str_replace([', },', ',},'], '},', $res);
 
         return json_decode($res, true);
     }
