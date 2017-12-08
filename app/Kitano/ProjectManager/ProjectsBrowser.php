@@ -23,7 +23,7 @@ class ProjectsBrowser
      *
      * @var array
      */
-    protected $hidden = ['home', 'phpmyadmin'];
+    protected $hidden = ['home', 'phpmyadmin', 'logs'];
 
     /** @var \Illuminate\Http\Request */
     protected $request;
