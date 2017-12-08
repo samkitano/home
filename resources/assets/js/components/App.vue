@@ -5,6 +5,9 @@
   .option-box {
     margin-bottom: 0
   }
+  .main {
+    padding-top: 50px
+  }
   .blink {
     color: white;
     animation: blinker .8s linear infinite
@@ -16,12 +19,11 @@
 
 <template>
   <section>
-    <b-container>
-      <header>
-        <v-head/>
-        <v-create-btn/>
-      </header>
+    <header>
+      <v-head/>
+    </header>
 
+    <b-container class="main">
       <main>
         <v-list/>
       </main>
@@ -35,7 +37,6 @@
 
 <script>
 import vHead from './pageHeading'
-import vCreateBtn from './createBtn'
 import vCreate from './Create'
 import vList from './List'
 import vFooter from './Footer'
@@ -45,7 +46,6 @@ import { mapActions } from 'vuex'
 export default {
   components: {
     vHead,
-    vCreateBtn,
     vCreate,
     vList,
     vFooter,

@@ -91,7 +91,7 @@ export default {
       this.showModal = true
     },
     preventCloseIfWorking (e) {
-      if (this.isWorking) {
+      if (this.$store.state.working) {
         e.preventDefault()
       }
     },
