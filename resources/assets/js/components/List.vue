@@ -1,34 +1,28 @@
-<style lang="css" scoped>    
+<style lang="css" scoped>
   .card {
     background-color: rgba(0, 0, 0, 0.03)
   }
-
   .card-img-top {
     padding: 1em 0
   }
-
   .card-text {
     padding: 1em;
     margin-bottom: 0;
     background-color: #FFF
   }
-
   .card-text, .output {
     font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     font-size: .8em
   }
-
   .card-img-top {
       max-height: 80px;
       margin: 0 auto
   }
-
   .card-header {
     background-color: transparent;
     text-align: center
   }
 </style>
-
 
 <template lang="html">
   <div>
@@ -41,7 +35,7 @@
                   img-top
                   class="mb-2">
             <h4 slot="header"><i class="fa fa-folder-o"></i> {{ site.folder }}</h4>
-            
+
             <p class="card-text">
               <span v-if="site.url">
                 <strong>Url:</strong> <a target="_blank" :href="site.url">{{ site.url }}</a><br>
@@ -63,7 +57,7 @@
             </p>
 
             <b-card-footer>
-              <b-dropdown size="sm" v-if="site.composer || site.package">
+              <b-dropdown size="sm" v-if="site.composer || site.package">
                 <template slot="button-content">{ }</template>
 
                 <b-dd-item-button v-if="site.composer" v-b-modal.info @click="fillModal('composer.json', site.composer)">composer.json</b-dd-item-button>
@@ -79,56 +73,59 @@
   </div>
 </template>
 
-
 <script type="text/javascript">
-  import svgs from '../svgPaths'
+/* global axios */
 
-  export default {
-    components: {
-      svgs
-    },
+import svgs from '../svgPaths'
+import { mapActions } from 'vuex'
 
-    data () {
-      return {
-        svgs
-      }
-    },
+export default {
+  components: {
+    svgs
+  },
 
-    methods: {
-      fixPermissions (path) {
-        let payload = {
-          _method: 'POST',
-          path
-        }
-
-        axios
-          .post('/fix', payload)
-          .then((r) => {
-              this.$swal('SUCCESS', r.data.message, 'success')
-          })
-          .catch((e) => {
-              this.$swal('ERROR', e.response.data.message, 'error')
-          })
-      },
-
-      deleteProject (project) {
-        // TODO
-      },
-
-      getEncodedSvg (el) {
-        return `data:image/svg+xml;base64,${svgs[el]}`
-      },
-
-      fillModal (title, info) {
-        Bus.$emit('populateModal', { title, info })
-      }
-    },
-
-    props: {
-      sites: {
-        required: true,
-        type: Array
-      }
+  computed: {
+    sites () {
+      return this.$store.state.data.sites
     }
-  }
+  },
+
+  data () {
+    return {
+      svgs
+    }
+  },
+
+  methods: Object.assign({}, mapActions([
+    'setInfoModal'
+  ]), {
+    fixPermissions (path) {
+      let payload = {
+        _method: 'POST',
+        path
+      }
+
+      axios
+        .post('/fix', payload)
+        .then((r) => {
+          this.$swal('SUCCESS', r.data.message, 'success')
+        })
+        .catch((e) => {
+          this.$swal('ERROR', e.response.data.message, 'error')
+        })
+    },
+
+    deleteProject (project) {
+      // TODO
+    },
+
+    getEncodedSvg (el) {
+      return `data:image/svg+xml;base64,${svgs[el]}`
+    },
+
+    fillModal (title, info) {
+      this.setInfoModal({ title, info })
+    }
+  })
+}
 </script>

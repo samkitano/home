@@ -20,11 +20,10 @@
   }
 </style>
 
-
 <template lang="html">
   <b-container fluid>
     <footer>
-        <template v-for="(tool, i) in tools">
+        <template v-for="(tool, i) in $store.state.data.tools">
             <span
                 :key="i"><a
                   target="_blank"
@@ -35,15 +34,3 @@
     </footer>
   </b-container>
 </template>
-
-
-<script type="text/javascript">
-  export default {
-    props: {
-      tools: {
-        required: true,
-        type: Array
-      }
-    }
-  }
-</script>

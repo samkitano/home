@@ -8,223 +8,132 @@
     @hidden="cancelCreating">
 
     <div slot="modal-header" class="w-100">
-      <v-form-head :maxSteps="maxSteps" :step="formStep" :projectType="type"/>
+      <v-form-head/>
     </div>
 
-    <v-form
-      :defaults="defaults"
-      :templates="templates"
-      :maxSteps="maxSteps"
-      :step="formStep"
-      :output="output"
-      :sites="sites"/>
+    <v-form/>
 
     <div slot="modal-footer" class="w-100">
-      <v-form-footer :maxSteps="maxSteps" :step="formStep"/>
+      <v-form-footer/>
     </div>
   </b-modal>
 </template>
 
-
 <script type="text/javascript">
-  const consoleColors = {
-    info: 'cyan',
-    error: 'red',
-    warning: 'yellow',
-    default: 'green'
-  }
+/* global Echo */
+import vForm from './createModalForm'
+import vFormHead from './createModalHead'
+import vFormFooter from './createModalFooter'
+import { find } from 'lodash'
+import { mapActions } from 'vuex'
 
-  import vForm from './createModalForm'
-  import vFormHead from './createModalHead'
-  import vFormFooter from './createModalFooter'
-  import { find } from 'lodash'
+const consoleColors = {
+  info: 'cyan',
+  error: 'red',
+  warning: 'yellow',
+  default: 'green'
+}
 
-  export default {
-    beforeDestroy () {
-      Bus.$off('type', this.openCreateForm)
-      Bus.$off('cancel', this.cancelCreating)
-      Bus.$off('next', this.nextStep)
-      Bus.$off('prev', this.prevStep)
-      Bus.$off('working', this.setWorking)
-      Bus.$off('clearConsole', this.clearConsole)
-      Bus.$off('sendOutput', this.sendOutput)
-      Bus.$off('popOutput', this.popOutput)
+export default {
+  components: {
+    vForm,
+    vFormHead,
+    vFormFooter
+  },
+
+  created () {
+    Echo
+      .channel('console')
+      .listen('ConsoleMessageEvent', (e) => {
+        if (e.message) {
+          this.sendOutput(e.message)
+        }
+      })
+  },
+
+  data () {
+    return {
+      showModal: false
+    }
+  },
+
+  methods: Object.assign({}, mapActions([
+    'cancel',
+    'clearConsole',
+    'nextStep',
+    'output',
+    'prevStep',
+    'resetStep',
+    'resetCreate',
+    'setSteps',
+    'setTemplates',
+    'setType',
+    'unsetCancel',
+    'unsetType'
+  ]), {
+    cancelCreating () {
+      this.showModal = false
+      this.resetCreate()
     },
+    formatWhiteMsg (str) {
+      let r1 = str.replace(/ \*\*/g, ' <span style="color:white">')
+      let r2 = r1.replace(/\*\*/g, '</span>')
 
-    components: {
-      vForm,
-      vFormHead,
-      vFormFooter
+      return r2
     },
+    openCreateForm (type) {
+      let item = find(this.$store.state.data.managers, { name: type })
 
-    computed: {
-      /**
-       * Compute necessary steps to complete creation process.
-       * Up to 3: Details, Template and Options
-       * Details: required for all projects
-       * Templete: required for some projects
-       * Options: includes option to set
-       * console verbosity. Depends on type/template choice.
-       *
-       * @returns {number}
-       */
-      maxSteps () {
-        return this.ntemplates ? 3 : 2
+      this.setSteps(item.templates ? 3 : 2)
+      this.setTemplates(item.templates)
+      this.unsetCancel()
+
+      this.showModal = true
+    },
+    preventCloseIfWorking (e) {
+      if (this.isWorking) {
+        e.preventDefault()
       }
     },
+    sendOutput (out) {
+      let json = this.isJson(out)
+      let type = 'default'
+      let msg = out
 
-    created () {
-      Echo
-        .channel('console')
-        .listen('ConsoleMessageEvent', (e) => {
-          if (e.message) {
-            this.sendOutput(e.message)
-          }
-        })
+      if (json) {
+        type = json['type'] ? json.type : type
+        msg = json['message'] ? json.message : msg
+      }
 
-      Bus.$on('type', this.openCreateForm)
-      Bus.$on('cancel', this.cancelCreating)
-      Bus.$on('next', this.nextStep)
-      Bus.$on('prev', this.prevStep)
-      Bus.$on('working', this.setWorking)
-      Bus.$on('clearConsole', this.clearConsole)
-      Bus.$on('sendOutput', this.sendOutput)
-      Bus.$on('popOutput', this.popOutput)
+      // strings between two asterisks will be parsed white
+      if (msg.indexOf('**') > -1) {
+        msg = this.formatWhiteMsg(msg)
+      }
+
+      // a nice blinking cursor
+      if (msg === '_CURSOR_') {
+        this.output(`<span class="blink">_</span>`)
+        return
+      }
+
+      this.output(`<span style="color:${consoleColors[type]}">${msg}</span>`)
     },
+    setWorking (state) {
+      this.isWorking = state
+    }
+  }),
 
-    data () {
-      return {
-        ntemplates: 0,
-        templates: [],
-        formStep: 1,
-        isWorking: false,
-        output: [],
-        showModal: false,
-        type: ''
+  watch: {
+    '$store.state.type' (type) {
+      if (type !== '') {
+        this.openCreateForm(type)
       }
     },
-
-    methods: {
-      /**
-       * Close and Reset modal
-       */
-      cancelCreating () {
-        Bus.$emit('resetForm', true)
-        Bus.$emit('done', false)
-        this.showModal = false
-        this.type = ''
-        this.formStep = 1
-        this.clearConsole()
-      },
-      /**
-       * Clear pseudo-console
-       */
-      clearConsole () {
-        this.output = []
-      },
-      /**
-       * Format a console message
-       * @param {string} str
-       * @returns {string}
-       */
-      formatWhiteMsg (str) {
-        let r1 = str.replace(/ \*\*/g, ' <span style="color:white">')
-        let r2 = r1.replace(/\*\*/g, '</span>')
-
-        return r2
-      },
-      /**
-       * Move to next step
-       * @param {number} step
-       */
-      nextStep (step) {
-        this.formStep++
-      },
-      /**
-       * Start creating a new project based on Type
-       * @param {string} type
-       */
-      openCreateForm (type) {
-        let item = find(this.items, { name: type })
-
-        this.type = type
-        this.templates = item.templates
-        this.ntemplates = item.templates.length
-        this.showModal = true
-      },
-      popOutput () {
-        this.output.pop()
-      },
-      /**
-       * Move to previous step
-       * @param {number} step
-       */
-      prevStep (step) {
-        this.formStep--
-      },
-      /**
-       * Prevents modal from closing
-       * if app is working
-       * @param {object} e
-       */
-      preventCloseIfWorking (e) {
-        if (this.isWorking) {
-          e.preventDefault()
-        }
-      },
-      /**
-       * Send output to console
-       * @param {string} out
-       */
-      sendOutput (out) {
-        let json = this.isJson(out)
-        let type = 'default'
-        let msg = out
-
-        if (json) {
-          type = json['type'] ? json.type : type
-          msg = json['message'] ? json.message : msg
-        }
-
-        // strings between two asterisks will be parsed white
-        if (msg.indexOf('**' ) > -1) {
-          msg = this.formatWhiteMsg(msg)
-        }
-
-        // a nice blinking cursor
-        if (msg === '_CURSOR_') {
-          this.output.push(`<span class="blink">_</span>`)
-          return
-        }
-
-        this.output.push(`<span style="color:${consoleColors[type]}">${msg}</span>`)
-      },
-      /**
-       * Set isWorking hook
-       * @param {boolean} state
-       */
-      setWorking (state) {
-        this.isWorking = state
-      }
-    },
-
-    props: {
-      defaults: {
-        required: true,
-        type: Object
-      },
-      items: {
-        required: true,
-        type: Array
-      },
-      sites: {
-        required: true,
-        type: Array
-      },
-      show: {
-        type: Boolean,
-        default: true
+    '$store.state.cancel' (state) {
+      if (state) {
+        this.cancelCreating()
       }
     }
   }
+}
 </script>

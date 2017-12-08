@@ -6,28 +6,26 @@
           <i class="fa fa-plus"></i> Create Project
         </template>
 
-        <template v-for="(item, index) in items">
-          <b-dd-item-button @click="emit(item.name)">{{ item.name }}</b-dd-item-button>
+        <template v-for="(item, i) in items">
+          <b-dd-item-button :key="i" @click="setType(item.name)">{{ item.name }}</b-dd-item-button>
         </template>
       </b-dropdown>
     </b-col>
   </b-row>
 </template>
 
-
 <script type="text/javascript">
-  export default {
-    methods: {
-      emit (t) {
-        Bus.$emit('type', t)
-      }
-    },
+import { mapActions } from 'vuex'
 
-    props: {
-      items: {
-        required: true,
-        type: Array
-      }
+export default {
+  computed: {
+    items () {
+      return this.$store.state.data.managers
     }
-  }
+  },
+
+  methods: mapActions([
+    'setType'
+  ])
+}
 </script>
