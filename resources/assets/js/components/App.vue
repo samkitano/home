@@ -6,7 +6,7 @@
     margin-bottom: 0
   }
   .main {
-    padding-top: 50px
+    padding-top: 80px
   }
   .blink {
     color: white;

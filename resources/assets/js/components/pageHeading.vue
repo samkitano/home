@@ -1,5 +1,6 @@
 <template lang="html">
-    <b-navbar sticky toggleable="md" type="dark" variant="info">
+  <div>
+    <b-navbar fixed="top" toggleable="md" type="dark" variant="info">
       <b-navbar-toggle target="nav_collapse"></b-navbar-toggle>
       <b-navbar-brand>Local Projects</b-navbar-brand>
       <b-collapse is-nav id="nav_collapse">
@@ -21,6 +22,7 @@
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
+  </div>
 </template>
 
 <script type="text/javascript">
