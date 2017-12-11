@@ -45184,7 +45184,9 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__Footer___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3__Footer__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__infoModal__ = __webpack_require__(394);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__infoModal___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4__infoModal__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5_vuex__ = __webpack_require__(39);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__defaultsModal__ = __webpack_require__(633);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__defaultsModal___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_5__defaultsModal__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6_vuex__ = __webpack_require__(39);
 //
 //
 //
@@ -45211,6 +45213,8 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
+
 
 
 
@@ -45225,7 +45229,8 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
     vCreateModal: __WEBPACK_IMPORTED_MODULE_1__Create___default.a,
     vProjects: __WEBPACK_IMPORTED_MODULE_2__Projects___default.a,
     vFooter: __WEBPACK_IMPORTED_MODULE_3__Footer___default.a,
-    vInfoModal: __WEBPACK_IMPORTED_MODULE_4__infoModal___default.a
+    vInfoModal: __WEBPACK_IMPORTED_MODULE_4__infoModal___default.a,
+    vDefaultsModal: __WEBPACK_IMPORTED_MODULE_5__defaultsModal___default.a
   },
 
   created: function created() {
@@ -45233,7 +45238,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
   },
 
 
-  methods: Object.assign({}, Object(__WEBPACK_IMPORTED_MODULE_5_vuex__["b" /* mapActions */])(['setProjectsData']), {
+  methods: Object.assign({}, Object(__WEBPACK_IMPORTED_MODULE_6_vuex__["b" /* mapActions */])(['setProjectsData']), {
     setData: function setData() {
       this.setProjectsData(JSON.parse(this.items));
     }
@@ -47542,6 +47547,9 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
     fillModal: function fillModal(title, info) {
       this.setInfoModal({ title: title, info: info });
     },
+    pClass: function pClass(txt) {
+      return txt ? 'p-0 m-0' : 'p-0 m-0 text-muted';
+    },
     titleClass: function titleClass(description) {
       return description ? 'mt-0' : 'mt-0 text-muted';
     }
@@ -47635,32 +47643,32 @@ var render = function() {
                               _vm._v(" " + _vm._s(site.path))
                             ]),
                             _vm._v(" "),
-                            _c("p", { staticClass: "p-0 m-0" }, [
+                            _c("p", { class: _vm.pClass(site.author) }, [
                               _c("strong", [_vm._v("Author:")]),
                               _vm._v(
                                 " " +
                                   _vm._s(
-                                    site.author ? site.author : "No author!"
+                                    site.author ? site.author : "No author"
                                   )
                               )
                             ]),
                             _vm._v(" "),
-                            _c("p", { staticClass: "p-0 m-0" }, [
+                            _c("p", { class: _vm.pClass(site.version) }, [
                               _c("strong", [_vm._v("Version:")]),
                               _vm._v(
                                 " " +
                                   _vm._s(
-                                    site.version ? site.version : "No version!"
+                                    site.version ? site.version : "No version"
                                   )
                               )
                             ]),
                             _vm._v(" "),
-                            _c("p", { staticClass: "p-0 m-0" }, [
+                            _c("p", { class: _vm.pClass(site.license) }, [
                               _c("strong", [_vm._v("License:")]),
                               _vm._v(
                                 " " +
                                   _vm._s(
-                                    site.license ? site.license : "No license!"
+                                    site.license ? site.license : "No license"
                                   )
                               )
                             ]),
@@ -47670,11 +47678,7 @@ var render = function() {
                                   _c("strong", [_vm._v("Storage:")]),
                                   _vm._v(
                                     " " +
-                                      _vm._s(
-                                        site.storagePermissions
-                                          ? site.storagePermissions
-                                          : "N/A"
-                                      ) +
+                                      _vm._s(site.storagePermissions) +
                                       "\n              "
                                   ),
                                   site.storagePermissions === "0755"
@@ -48080,7 +48084,9 @@ var render = function() {
       _vm._v(" "),
       _c("v-create-modal"),
       _vm._v(" "),
-      _c("v-info-modal")
+      _c("v-info-modal"),
+      _vm._v(" "),
+      _c("v-defaults-modal")
     ],
     1
   )
@@ -69671,6 +69677,14 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
 
 
 
@@ -69725,6 +69739,7 @@ var render = function() {
             [
               _c(
                 "b-navbar-nav",
+                { staticStyle: { "border-left": "1px solid #444" } },
                 [
                   _c(
                     "b-nav-item-dropdown",
@@ -69787,9 +69802,31 @@ var render = function() {
                 "b-navbar-nav",
                 { staticClass: "ml-auto" },
                 [
-                  _c("b-nav-item", { attrs: { right: "", href: "#" } }, [
-                    _c("i", { staticClass: "fa fa-cog" })
-                  ])
+                  _c(
+                    "b-nav-item-dropdown",
+                    { attrs: { "no-caret": "", right: "" } },
+                    [
+                      _c("template", { slot: "button-content" }, [
+                        _c("i", { staticClass: "fas fa-cog" })
+                      ]),
+                      _vm._v(" "),
+                      _c(
+                        "b-dd-item-button",
+                        {
+                          directives: [
+                            {
+                              name: "b-modal",
+                              rawName: "v-b-modal.defaultsModal",
+                              modifiers: { defaultsModal: true }
+                            }
+                          ],
+                          attrs: { size: "sm" }
+                        },
+                        [_vm._v("API Defaults")]
+                      )
+                    ],
+                    2
+                  )
                 ],
                 1
               )
@@ -69810,6 +69847,78 @@ if (false) {
   module.hot.accept()
   if (module.hot.data) {
     require("vue-hot-reload-api")      .rerender("data-v-1ada6748", module.exports)
+  }
+}
+
+/***/ }),
+/* 633 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+var normalizeComponent = __webpack_require__(13)
+/* script */
+var __vue_script__ = null
+/* template */
+var __vue_template__ = __webpack_require__(634)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = null
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/assets/js/components/defaultsModal.vue"
+if (Component.esModule && Object.keys(Component.esModule).some(function (key) {  return key !== "default" && key.substr(0, 2) !== "__"})) {  console.error("named exports are not supported in *.vue files.")}
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-21297d74", Component.options)
+  } else {
+    hotAPI.reload("data-v-21297d74", Component.options)
+' + '  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 634 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "b-modal",
+    { attrs: { id: "defaultsModal", title: "API Defaults" } },
+    [_c("pre", [_vm._v(_vm._s(_vm.$store.state.data.defaults))])]
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-21297d74", module.exports)
   }
 }
 
