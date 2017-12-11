@@ -4,7 +4,7 @@
       <b-navbar-toggle target="nav_collapse"></b-navbar-toggle>
       <b-navbar-brand>Local Projects <b-badge variant="secondary">{{ $store.state.data.sites.length }}</b-badge></b-navbar-brand>
       <b-collapse is-nav id="nav_collapse">
-        <b-navbar-nav>
+        <b-navbar-nav style="border-left:1px solid #444">
           <b-nav-item-dropdown text="Create">
             <template v-for="(item, i) in items">
               <b-dd-item-button
@@ -27,7 +27,15 @@
         </b-navbar-nav>
 
         <b-navbar-nav class="ml-auto">
-          <b-nav-item right href="#"><i class="fa fa-cog"></i></b-nav-item>
+          <b-nav-item-dropdown no-caret right>
+            <template slot="button-content">
+                <i class="fas fa-cog"></i>
+            </template>
+
+            <b-dd-item-button
+              size="sm"
+              v-b-modal.defaultsModal>API Defaults</b-dd-item-button>
+          </b-nav-item-dropdown>
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>

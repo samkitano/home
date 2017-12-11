@@ -21,6 +21,7 @@
     <v-footer/>
     <v-create-modal/>
     <v-info-modal/>
+    <v-defaults-modal/>
   </section>
 </template>
 
@@ -30,6 +31,7 @@ import vCreateModal from './Create'
 import vProjects from './Projects'
 import vFooter from './Footer'
 import vInfoModal from './infoModal'
+import vDefaultsModal from './defaultsModal'
 import { mapActions } from 'vuex'
 
 export default {
@@ -38,7 +40,8 @@ export default {
     vCreateModal,
     vProjects,
     vFooter,
-    vInfoModal
+    vInfoModal,
+    vDefaultsModal
   },
 
   created () {
