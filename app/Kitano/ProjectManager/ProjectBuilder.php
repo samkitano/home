@@ -138,6 +138,14 @@ class ProjectBuilder
      */
     protected function canCreateProject()
     {
+        if (! $this->request->has('name') || $this->request->input('name') === '') {
+            throw new ProjectManagerException("Project name is required!");
+        }
+
+        if (! $this->request->has('type') || $this->request->input('type') === '') {
+            throw new ProjectManagerException("Project type is required!");
+        }
+
         $dir = env('SITES_DIR');
 
         if (is_dir($dir.DIRECTORY_SEPARATOR.$this->projectName)) {
