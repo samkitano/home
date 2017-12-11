@@ -10,6 +10,7 @@
         <title>Samy - Web Dev</title>
 
         <link type="text/css" rel="stylesheet" href="css/app.css">
+        <script defer src="fa/js/fontawesome-all.js"></script>
     </head>
 
     <body>
