@@ -25,6 +25,16 @@ class ProjectsBrowser
      */
     protected $hidden = ['home', 'phpmyadmin', 'logs'];
 
+    /** @var array */
+    protected $icons = [
+        'laravel' => 'fab fa-laravel',  // so, they've decided to include laravel in font-awesome. cool!
+        'vue' => 'fab fa-vuejs',        // and vue! :)
+        'node' => 'fab fa-node-js',     // even node!!!
+        'php' => 'fas fa-code',         // and yet, php was not included. why???
+        'code' => 'fas fa-code',
+        'nuxt' => 'fab fa-node-js'
+    ];
+
     /** @var \Illuminate\Http\Request */
     protected $request;
 
@@ -76,9 +86,14 @@ class ProjectsBrowser
         $t['url'] = "http://{$folderName}.{$this->tld}";
         $t['folder'] = $folderName;
         $t['path'] = $folder;
-        $t['composer'] = isset($this->composer) ? $this->composer : null;
-        $t['package'] = isset($this->package) ? $this->package : null;
+        $t['composer'] = $this->composer ?? null;
+        $t['package'] = $this->package ?? null;
+        $t['description'] = $this->composer['description'] ?? $this->package['description'] ?? null;
+        $t['author'] = $this->composer['author'] ?? $this->package['author'] ?? null;
+        $t['license'] = $this->composer['license'] ?? $this->package['license'] ?? null;
+        $t['version'] = $this->composer['version'] ?? $this->package['version'] ?? null;
         $t['type'] = $this->guessProjectType();
+        $t['icon'] = $this->icons[$t['type']];
         $t['storagePermissions'] = $t['type'] === 'laravel' ? $this->getStoragePermissions($folder) : null;
 
         return $t;
@@ -103,12 +118,15 @@ class ProjectsBrowser
             if (array_key_exists('vue', $this->package['devDependencies'])
                 || array_key_exists('vue', $this->package['dependencies'])) {
                 return 'vue';
+            } else if (array_key_exists('nuxt', $this->package['devDependencies'])
+                || array_key_exists('nuxt', $this->package['dependencies'])){
+                return 'nuxt';
             } else {
                 return 'node';
             }
         }
 
-        return 'unknown';
+        return 'code';
     }
 
     /**
