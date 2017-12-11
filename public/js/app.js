@@ -45163,7 +45163,7 @@ exports = module.exports = __webpack_require__(16)(undefined);
 
 
 // module
-exports.push([module.i, "\n.form-control-sm.custom-select {\n  padding: 0.25rem 0.5rem /* bootstrap select sm fix */\n}\n.option-box {\n  margin-bottom: 0\n}\n.blink {\n  color: white;\n  -webkit-animation: blinker .8s linear infinite;\n          animation: blinker .8s linear infinite\n}\n@-webkit-keyframes blinker {\n50% { opacity: 0\n}\n}\n@keyframes blinker {\n50% { opacity: 0\n}\n}\n", ""]);
+exports.push([module.i, "\n.form-control-sm.custom-select {\n  padding: 0.25rem 0.5rem /* bootstrap select sm fix */\n}\n.option-box {\n  margin-bottom: 0\n}\n.blink {\n  color: white;\n  -webkit-animation: blinker .8s linear infinite;\n          animation: blinker .8s linear infinite\n}\n@-webkit-keyframes blinker {\n50% { opacity: 0\n}\n}\n@keyframes blinker {\n50% { opacity: 0\n}\n}\n.vue {\n  color: #4fc08d\n}\n.laravel {\n  color: #e74430\n}\n", ""]);
 
 // exports
 
@@ -45187,6 +45187,12 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__defaultsModal__ = __webpack_require__(633);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__defaultsModal___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_5__defaultsModal__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6_vuex__ = __webpack_require__(39);
+//
+//
+//
+//
+//
+//
 //
 //
 //
@@ -45424,9 +45430,6 @@ var consoleColors = {
       }
 
       this.output('<span style="color:' + consoleColors[type] + '">' + msg + '</span>');
-    },
-    setWorking: function setWorking(state) {
-      this.isWorking = state;
     }
   }),
 
@@ -46878,7 +46881,7 @@ if (false) {
 var disposed = false
 var normalizeComponent = __webpack_require__(13)
 /* script */
-var __vue_script__ = __webpack_require__(373)
+var __vue_script__ = null
 /* template */
 var __vue_template__ = __webpack_require__(374)
 /* template functional */
@@ -46920,38 +46923,7 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 373 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-/* harmony default export */ __webpack_exports__["default"] = ({
-  computed: {
-    textStyle: function textStyle() {
-      switch (this.$store.state.type) {
-        case 'Laravel':
-          return 'text-danger';
-        case 'Vue':
-          return 'text-success';
-        default:
-          return 'text-default';
-      }
-    }
-  }
-});
-
-/***/ }),
+/* 373 */,
 /* 374 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -46965,7 +46937,7 @@ var render = function() {
       _c("b-col", [
         _c("h3", { staticClass: "text-center mb-3" }, [
           _vm._v("\n      New "),
-          _c("span", { class: _vm.textStyle }, [
+          _c("span", { class: this.$store.state.type.toLowerCase() }, [
             _vm._v(_vm._s(_vm.$store.state.type))
           ]),
           _vm._v(" project\n    ")
@@ -47421,7 +47393,7 @@ exports = module.exports = __webpack_require__(16)(undefined);
 
 
 // module
-exports.push([module.i, "\n.vue[data-v-2290c4b1] {\n  color: #4fc08d\n}\n.laravel[data-v-2290c4b1] {\n  color: #e74430\n}\n.c[data-v-2290c4b1] {\n  text-transform: capitalize\n}\n.main[data-v-2290c4b1] {\n  padding-top: 80px\n}\n", ""]);
+exports.push([module.i, "\n.c[data-v-2290c4b1] {\n  text-transform: capitalize\n}\n.main[data-v-2290c4b1] {\n  padding-top: 80px\n}\n", ""]);
 
 // exports
 
@@ -47433,12 +47405,6 @@ exports.push([module.i, "\n.vue[data-v-2290c4b1] {\n  color: #4fc08d\n}\n.larave
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vuex__ = __webpack_require__(39);
-//
-//
-//
-//
-//
-//
 //
 //
 //
@@ -47679,7 +47645,7 @@ var render = function() {
                                   _vm._v(
                                     " " +
                                       _vm._s(site.storagePermissions) +
-                                      "\n              "
+                                      "\n                "
                                   ),
                                   site.storagePermissions === "0755"
                                     ? _c("span", [
@@ -47748,7 +47714,7 @@ var render = function() {
                                 },
                                 [
                                   _vm._v(
-                                    "\n            composer.json\n          "
+                                    "\n              composer.json\n            "
                                   )
                                 ]
                               )
@@ -47780,7 +47746,7 @@ var render = function() {
                                 },
                                 [
                                   _vm._v(
-                                    "\n            package.json\n          "
+                                    "\n              package.json\n            "
                                   )
                                 ]
                               )
@@ -69641,6 +69607,8 @@ module.exports = Component.exports
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vuex__ = __webpack_require__(39);
+//
+//
 //
 //
 //

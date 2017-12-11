@@ -12,6 +12,12 @@
   @keyframes blinker {
     50% { opacity: 0 }
   }
+  .vue {
+    color: #4fc08d
+  }
+  .laravel {
+    color: #e74430
+  }
 </style>
 
 <template>

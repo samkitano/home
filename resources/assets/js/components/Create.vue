@@ -113,9 +113,6 @@ export default {
       }
 
       this.output(`<span style="color:${consoleColors[type]}">${msg}</span>`)
-    },
-    setWorking (state) {
-      this.isWorking = state
     }
   }),
 

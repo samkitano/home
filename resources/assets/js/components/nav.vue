@@ -2,7 +2,9 @@
   <header>
     <b-navbar fixed="top" toggleable="md" type="dark" variant="dark">
       <b-navbar-toggle target="nav_collapse"></b-navbar-toggle>
+
       <b-navbar-brand>Local Projects <b-badge variant="secondary">{{ $store.state.data.sites.length }}</b-badge></b-navbar-brand>
+
       <b-collapse is-nav id="nav_collapse">
         <b-navbar-nav style="border-left:1px solid #444">
           <b-nav-item-dropdown text="Create">
