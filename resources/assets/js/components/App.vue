@@ -22,32 +22,32 @@
 
 <template>
   <section>
-    <v-nav/>
-    <v-projects/>
+    <top-bar/>
+    <projects/>
     <v-footer/>
-    <v-create-modal/>
-    <v-info-modal/>
-    <v-defaults-modal/>
+    <create-modal/>
+    <dot-json-modal/>
+    <defaults-modal/>
   </section>
 </template>
 
 <script>
-import vNav from './nav'
-import vCreateModal from './Create'
-import vProjects from './Projects'
-import vFooter from './Footer'
-import vInfoModal from './infoModal'
-import vDefaultsModal from './defaultsModal'
+import topBar from './nav'
+import createModal from './modals/Create'
+import projects from './projects'
+import vFooter from './footer'
+import dotJsonModal from './modals/DotJson'
+import defaultsModal from './modals/Defaults'
 import { mapActions } from 'vuex'
 
 export default {
   components: {
-    vNav,
-    vCreateModal,
-    vProjects,
+    topBar,
+    createModal,
+    projects,
     vFooter,
-    vInfoModal,
-    vDefaultsModal
+    dotJsonModal,
+    defaultsModal
   },
 
   created () {
