@@ -1,5 +1,5 @@
 <template lang="html">
-  <form @submit.stop="createProject">
+  <form>
     <div class="step1" v-show="step === 1">
       <b-form-group
         description="/^[a-zA-Z]\w+$/"
@@ -121,7 +121,7 @@ export default {
       return this.$store.state.done
     },
     showOptions () {
-      return this.step === 3 || (this.step === 2 && this.maxSteps === 2)
+      return this.step === this.steps
     },
     showSelectTemplate () {
       return this.steps > 2 && this.step === 2
@@ -271,7 +271,7 @@ export default {
     },
     manageErrorResponse (res) {
       this.unsetWorking()
-      this.output(JSON.stringify({ message: res.data.message, type: 'error' }))
+      this.output(`<span style="color:cyan">${res.data.message}</span>`)
       this.output(' ')
       this.unsetCreating()
       this.setError()

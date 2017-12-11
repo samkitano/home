@@ -4,7 +4,7 @@
     ref="project"
     size="lg"
     v-model="showModal"
-    @hide="preventCloseIfWorking"
+    @hide="preventCloseIfCreating"
     @hidden="cancelCreating">
 
     <div slot="modal-header" class="w-100">
@@ -58,18 +58,14 @@ export default {
   },
 
   methods: Object.assign({}, mapActions([
-    'cancel',
-    'clearConsole',
     'nextStep',
     'output',
     'prevStep',
-    'resetStep',
     'resetCreate',
     'setSteps',
     'setTemplates',
     'setType',
-    'unsetCancel',
-    'unsetType'
+    'unsetCancel'
   ]), {
     cancelCreating () {
       this.showModal = false
@@ -84,14 +80,14 @@ export default {
     openCreateForm (type) {
       let item = find(this.$store.state.data.managers, { name: type })
 
-      this.setSteps(item.templates ? 3 : 2)
+      this.setSteps(item.templates.length ? 3 : 2)
       this.setTemplates(item.templates)
       this.unsetCancel()
 
       this.showModal = true
     },
-    preventCloseIfWorking (e) {
-      if (this.$store.state.working) {
+    preventCloseIfCreating (e) {
+      if (this.$store.state.creating) {
         e.preventDefault()
       }
     },

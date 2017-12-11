@@ -6,7 +6,7 @@
       :disabled="step === 1 || working"
       :variant="step === 1 ? 'secondary' : 'primary'"
       @click="prevStep">
-      <i class="fa fa-arrow-left"></i>
+      <i class="fas fa-arrow-left"></i>
     </b-btn>
 
     <b-btn
@@ -15,16 +15,16 @@
       size="sm">{{ infoText }}</b-btn>
 
     <b-btn
-      v-if="step !== steps"
+      v-show="step !== steps"
       size="sm"
       :disabled="step === steps || !valid || working"
       :variant="step === steps || !valid ? 'secondary' : 'primary'"
       @click="nextStep">
-      <i class="fa fa-arrow-right"></i>
+      <i class="fas fa-arrow-right"></i>
     </b-btn>
 
     <b-btn
-      v-if="step === steps && !done"
+      v-show="step === steps && !done"
       size="sm"
       :disabled="working"
       :variant="working ? 'secondary' : 'primary'"

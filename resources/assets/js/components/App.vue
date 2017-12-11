@@ -5,9 +5,6 @@
   .option-box {
     margin-bottom: 0
   }
-  .main {
-    padding-top: 80px
-  }
   .blink {
     color: white;
     animation: blinker .8s linear infinite
@@ -19,35 +16,27 @@
 
 <template>
   <section>
-    <header>
-      <v-head/>
-    </header>
-
-    <b-container class="main">
-      <main>
-        <v-list/>
-      </main>
-    </b-container>
-
+    <v-nav/>
+    <v-projects/>
     <v-footer/>
-    <v-create/>
+    <v-create-modal/>
     <v-info-modal/>
   </section>
 </template>
 
 <script>
-import vHead from './pageHeading'
-import vCreate from './Create'
-import vList from './List'
+import vNav from './nav'
+import vCreateModal from './Create'
+import vProjects from './Projects'
 import vFooter from './Footer'
 import vInfoModal from './infoModal'
 import { mapActions } from 'vuex'
 
 export default {
   components: {
-    vHead,
-    vCreate,
-    vList,
+    vNav,
+    vCreateModal,
+    vProjects,
     vFooter,
     vInfoModal
   },

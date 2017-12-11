@@ -6,18 +6,16 @@
 </style>
 
 <template lang="html">
-  <div class="loading" cols="1">
-    <i :class="iClass"></i>
+  <div class="loading" v-show="working">
+    <i class="fas fa-circle-notch fa-spin fa-fw"></i>
   </div>
 </template>
 
 <script type="text/javascript">
 export default {
   computed: {
-    iClass () {
+    working () {
       return this.$store.state.working
-        ? 'fa middle fa-spinner fa-spin fa-fw'
-        : 'fa middle fa-sun-o'
     }
   }
 }

@@ -1,8 +1,8 @@
 <template lang="html">
-  <div>
-    <b-navbar fixed="top" toggleable="md" type="dark" variant="info">
+  <header>
+    <b-navbar fixed="top" toggleable="md" type="dark" variant="dark">
       <b-navbar-toggle target="nav_collapse"></b-navbar-toggle>
-      <b-navbar-brand>Local Projects</b-navbar-brand>
+      <b-navbar-brand>Local Projects <b-badge variant="secondary">{{ $store.state.data.sites.length }}</b-badge></b-navbar-brand>
       <b-collapse is-nav id="nav_collapse">
         <b-navbar-nav>
           <b-nav-item-dropdown text="Create">
@@ -14,15 +14,24 @@
               </b-dd-item-button>
             </template>
           </b-nav-item-dropdown>
+
+          <b-nav-item-dropdown text="Util">
+            <template v-for="(tool, i) in $store.state.data.tools">
+              <b-dd-item
+                :key="i"
+                target="_blank"
+                :title="tool.desc"
+                :href="tool.url">{{ tool.name}}</b-dd-item>
+            </template>
+          </b-nav-item-dropdown>
         </b-navbar-nav>
 
-        <!-- Right aligned nav items -->
         <b-navbar-nav class="ml-auto">
           <b-nav-item right href="#"><i class="fa fa-cog"></i></b-nav-item>
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
-  </div>
+  </header>
 </template>
 
 <script type="text/javascript">
