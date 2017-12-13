@@ -8,6 +8,7 @@ use App\Kitano\ProjectManager\Services\VueCli;
 use Illuminate\Http\Request;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use App\Kitano\ProjectManager\Traits\HandlesTemplates;
 
 class TestController extends Controller
 {
@@ -83,11 +84,11 @@ dd($f);
 //
 //        dd($results);
 //        $r = new Request();
-        $metaFile = public_path(env('VUE_TEMPLATES')).DIRECTORY_SEPARATOR.'pwa'.DIRECTORY_SEPARATOR.'meta.js';
+        $metaFile = public_path(env('TEMPLATES')).DIRECTORY_SEPARATOR.'express-template'.DIRECTORY_SEPARATOR.'meta.js';
 
         $meta = file_get_contents($metaFile);
 
-        $filters = VueManager::decodeMeta($meta);dd($filters);
+        $filters = HandlesTemplates::decodeMeta($meta, false);dd($filters);
         $r->template = 'webpack';
         $r->options = [
             'name' => 'Sammy',
