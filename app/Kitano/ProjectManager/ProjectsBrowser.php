@@ -32,7 +32,7 @@ class ProjectsBrowser
         'node' => 'fab fa-node-js',     // even node!!!
         'php' => 'fas fa-code',         // and yet, php was not included. why???
         'code' => 'fas fa-code',
-        'nuxt' => 'fab fa-node-js'
+        'nuxt' => 'fab fa-vuejs inverted',
     ];
 
     /** @var \Illuminate\Http\Request */
