@@ -112,4 +112,17 @@ class LaravelManager extends ProjectBuilder implements Manager
     {
         return static::$templates;
     }
+
+    /**
+     * Get template meta
+     *
+     * @param string  $template
+     * @param bool    $local
+     *
+     * @return string
+     */
+    public static function getMeta($template, $local = false)
+    {
+        return [];
+    }
 }
