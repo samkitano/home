@@ -54,7 +54,6 @@ class VueCli extends VueManager
     protected $templatesPath;
 
 
-
     /**
      * Iterate Vue Cli Template files
      *
@@ -62,8 +61,7 @@ class VueCli extends VueManager
      */
     public function make()
     {
-        $this->meta = parent::getMeta($this->template);
-        $this->templatesPath = public_path(env('VUE_TEMPLATES', ''));
+        $this->templatesPath = public_path(env('TEMPLATES', ''));
         $this->filters = $this->meta['filters'] ?? null;
 
         Console::broadcast("Converting Template '{$this->template}'...");
@@ -84,6 +82,14 @@ class VueCli extends VueManager
         $this->mergeCopies();
 
         return $this->results;
+    }
+
+    /**
+     * @param array $meta
+     */
+    public function setMeta($meta)
+    {
+        $this->meta = $meta;
     }
 
     /**
