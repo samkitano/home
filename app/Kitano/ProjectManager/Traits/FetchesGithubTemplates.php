@@ -8,28 +8,26 @@ use RecursiveIteratorIterator;
 use RecursiveDirectoryIterator;
 use GuzzleHttp\Exception\ClientException;
 
-trait FetchesTemplates
+trait FetchesGithubTemplates
 {
     /**
-     * @param string $template
+     * @param string $templateName  Template Name
+     * @param string $repo          Template Repository (Github)
      *
      * @return bool|string
      */
-    public static function fetch($template)
+    public static function fetch($templateName, $repo)
     {
-        $tplPath = env('VUE_TEMPLATES');
+        $dldPath = public_path(env('DOWNLOADS', ''));
+        $file = $dldPath.DIRECTORY_SEPARATOR.$templateName.'.zip';
+        $url = "{$repo}/{$templateName}/archive/master.zip";
 
-        if (! static::hasLocal($template)) {
-            $file = $tplPath.DIRECTORY_SEPARATOR.$template.'.zip';
-            $url = "https://github.com/vuejs-templates/{$template}/archive/master.zip";
+        file_put_contents($file,
+            file_get_contents($url)
+        );
 
-            file_put_contents($file,
-                file_get_contents($url)
-            );
-
-            if (file_exists($file)) {
-                return $file;
-            }
+        if (file_exists($file)) {
+            return $file;
         }
 
         return false;
@@ -38,24 +36,23 @@ trait FetchesTemplates
     /**
      * Extract zipped template
      *
-     * @param string $file
+     * @param string $file  File to extract (full path)
      *
      * @return bool
      */
     public static function extract($file)
     {
-        $tplPath = env('VUE_TEMPLATES');
-
         if (! file_exists($file)) {
             return false;
         }
 
+        $to = public_path(env('TEMPLATES', ''));
         $fDir = preg_replace('/\\.[^.\\s]{3,4}$/', '', basename($file));
-        $dest = $tplPath.DIRECTORY_SEPARATOR.$fDir;
+        $dest = $to.DIRECTORY_SEPARATOR.$fDir;
         $zip = new ZipArchive;
 
         $zip->open($file);
-        $zip->extractTo($tplPath);
+        $zip->extractTo($to);
         $zip->close();
 
         static::deleteOld($dest);
@@ -68,12 +65,14 @@ trait FetchesTemplates
     }
 
     /**
-     * @param string $dir
+     * @param string $dir Drectory to chmod
      *
      * @return void
      */
     public static function changePerms($dir)
     {
+        chmod($dir, 0777);
+
         $iterator = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS),
             RecursiveIteratorIterator::SELF_FIRST
@@ -95,19 +94,21 @@ trait FetchesTemplates
     }
 
     /**
-     * @param string $repo Repo Name
+     * @param string $repo     Repo url (github)
+     * @param string $template Template name
      *
      * @return mixed
      */
-    public static function latestVersion($repo)
+    public static function latestVersion($repo, $template)
     {
-        $req = static::makeRequest('https://api.github.com/repos/vuejs-templates/'.$repo.'/releases/latest');
+        $repo = str_replace("github.com", "api.github.com/repos", $repo);
+        $res = static::makeRequest("{$repo}/{$template}/releases/latest");
 
-        if (! $req) {
+        if (! $res) {
             return false;
         }
 
-        $data = json_decode($req->getBody(), true);
+        $data = json_decode($res->getBody(), true);
 
         return $data['tag_name'];
     }
