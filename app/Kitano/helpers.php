@@ -74,3 +74,39 @@ if (! function_exists('copyFiles')) {
         closedir($dir);
     }
 }
+
+if (! function_exists('stripDangCommas')) {
+    /**
+     * Remove dangling commas from json strings
+     *
+     * @param string $str
+     * @return mixed
+     */
+    function stripDangCommas($str) {
+        return str_replace('},}', '}}', $str);
+    }
+}
+
+if (! function_exists('getFromStartingBrace')) {
+    /**
+     * Returns a string from the first opening brace
+     *
+     * @param string $content
+     * @return string
+     */
+    function getFromStartingBrace($content) {
+        return substr($content, strpos($content, '{') + 1);
+    }
+}
+
+if (! function_exists('getFromModuleExports')) {
+    /**
+     * Returns a string from the first opening brace
+     *
+     * @param string $content
+     * @return string
+     */
+    function getFromModuleExports($content) {
+        return substr($content, strpos($content, 'module.exports = {') + 18);
+    }
+}
