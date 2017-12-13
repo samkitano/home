@@ -18,6 +18,12 @@
   .laravel {
     color: #e74430
   }
+  .nuxt {
+    color: #35495e
+  }
+  .inverted {
+    transform: rotate(180deg);
+  }
 </style>
 
 <template>
@@ -34,7 +40,7 @@
 <script>
 import topBar from './nav'
 import createModal from './modals/Create'
-import projects from './projects'
+import projects from './allprojects'
 import vFooter from './footer'
 import dotJsonModal from './modals/DotJson'
 import defaultsModal from './modals/Defaults'
