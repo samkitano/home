@@ -156,7 +156,27 @@ class ProjectBuilder
             throw new ProjectManagerException("{$dir} is not writable!");
         }
 
+        $this->createDir(env('DOWNLOADS', ''));
+        $this->createDir(env('TEMPLATES', ''));
+
         return $this;
+    }
+
+    protected function createDir($dir)
+    {
+        if ($dir !== '') {
+            $public = public_path($dir);
+
+            if (! is_dir($public)) {
+                mkdir($public);
+            }
+
+            if (! is_dir($public)) {
+                throw new ProjectManagerException("Could not create directory {$public}");
+            }
+
+            chmod($public, 0777);
+        }
     }
 
     /**
@@ -186,7 +206,7 @@ class ProjectBuilder
      */
     protected function writeFile($file, $content)
     {
-        Console::broadcast("Writing {$file}...");
+        Console::broadcast("Writing {$file}.");
 
         file_put_contents($file, $content);
     }
@@ -217,11 +237,15 @@ class ProjectBuilder
      */
     protected function runNpm()
     {
-        if (! $this->request->has('runNpm') || ! $this->request->input('runNpm')) {
+        $run = $this->request->has('runNpm') && $this->request->input('runNpm')
+            || $this->request->has('autoInstall') && $this->request->input('autoInstall') !== false;
+
+        if (! $run) {
             return $this;
         }
 
-        Console::broadcast('Running npm intall.');
+        // TODO: Yarn
+        Console::broadcast('Running npm install.');
 
         chdir($this->getProjectsDir().DIRECTORY_SEPARATOR.$this->projectName);
 
