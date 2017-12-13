@@ -270,11 +270,11 @@ export default {
       return this.inArray(optionName, this.nativeOptions)
     },
     manageErrorResponse (res) {
-      this.unsetWorking()
-      this.output(`<span style="color:cyan">${res.data.message}</span>`)
+      this.setError()
+      this.output(`<span style="color:red">${res.data.message}</span>`)
       this.output(' ')
       this.unsetCreating()
-      this.setError()
+      this.unsetWorking()
 
       this.$swal(
         {

@@ -3,7 +3,7 @@
     block
     size="sm"
     :disabled="working"
-    @click="cancel">{{ done ? 'Close' : 'Cancel' }}</b-btn>
+    @click="cancel">{{ done || error ? 'Close' : 'Cancel' }}</b-btn>
 </template>
 
 <script type="text/javascript">
@@ -13,6 +13,9 @@ export default {
   computed: {
     done () {
       return this.$store.state.done
+    },
+    error () {
+      return this.$store.state.error
     },
     working () {
       return this.$store.state.working

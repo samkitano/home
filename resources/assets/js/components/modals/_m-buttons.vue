@@ -1,7 +1,7 @@
 <template lang="html">
   <b-col class="text-center">
     <b-btn
-      v-if="!done"
+      v-if="!done && !creating"
       size="sm"
       :disabled="step === 1 || working"
       :variant="step === 1 ? 'secondary' : 'primary'"
@@ -24,7 +24,7 @@
     </b-btn>
 
     <b-btn
-      v-show="step === steps && !done"
+      v-show="step === steps && (!done && !error)"
       size="sm"
       :disabled="working"
       :variant="working ? 'secondary' : 'primary'"
@@ -39,6 +39,9 @@ import { mapActions } from 'vuex'
 
 export default {
   computed: {
+    creating () {
+      return this.$store.state.creating
+    },
     description () {
       if (this.step === 1) {
         return 'Enter details'
@@ -52,6 +55,9 @@ export default {
     },
     done () {
       return this.$store.state.done
+    },
+    error () {
+      return this.$store.state.error
     },
     infoText () {
       if (this.$store.state.error) {
