@@ -1,102 +1,71 @@
 <template lang="html">
-  <form>
-    <div class="step1" v-show="step === 1">
-      <b-form-group
-        description="/^[a-zA-Z]\w+$/"
-        label="Name *"
-        :feedback="feedbacks.name"
-        :state="states.name">
-        <b-form-input
-          id="name"
-          ref="name"
-          size="sm"
-          autofocus
-          :state="states.name"
-          v-on:input="validateProjectName"
-          v-model.trim="fields.name"></b-form-input>
-      </b-form-group>
+  <div>
+    <v-console/>
 
+    <div class="step1" v-show="showSelectTemplate">
       <b-form-group
-        description="/[a-zA-Z0-9 ]\w*$/"
-        label="Description"
-        :feedback="feedbacks.description"
-        :state="states.description">
-        <b-form-input
-          id="description"
-          ref="description"
+        description="Pick a Template"
+        :feedback="feedbacks.template"
+        :state="states.template">
+        <b-form-select
+          id="template"
+          ref="template"
           size="sm"
-          :state="states.description"
-          v-on:input="validateProjectDescription"
-          v-model.trim="fields.description"></b-form-input>
+          v-model="fields.template"
+          :state="states.template"
+          :options="templates">
+          <template slot="first">
+            <option :value="false" disabled>-- Please select a template --</option>
+          </template>
+        </b-form-select>
       </b-form-group>
     </div>
 
-    <div class="steps2and3" v-show="step > 1">
-      <div class="step2" v-show="showSelectTemplate">
-        <b-form-group
-          description="Pick a Template"
-          :feedback="feedbacks.template"
-          :state="states.template">
-          <b-form-select
-            id="template"
-            ref="template"
-            size="sm"
-            v-model="fields.template"
-            @input="valiateTemplate"
-            :state="states.template"
-            :options="templates">
-            <template slot="first">
-              <option :value="false" disabled>-- Please select a template --</option>
-            </template>
-          </b-form-select>
-        </b-form-group>
-      </div>
+    <div class="step2" v-show="showOptions">
+      <div v-if="showOptions">
+        <div v-show="!creating && !done">
+          <template v-for="(option, i) in templateOptions">
+            <p :key="i" class="option-box" v-if="option.type === 'confirm'">
+              <b-form-checkbox
+                size="sm"
+                :id="i"
+                v-model="fields[i]"
+                :value="true"
+                :unchecked-value="false">{{ option.message }}</b-form-checkbox>
+            </p>
 
-      <div class="step3" v-show="showOptions">
-        <div v-if="showOptions">
-          <v-console/>
+            <b-form-group
+              v-if="option.type === 'list'"
+              v-show="option.when ? fields[option.when] : true"
+              :description="feedbacks[i]"
+              :key="i"
+              :label="option.message">
+              <b-form-select
+                size="sm"
+                :id="i"
+                v-model="fields[i]"
+                :options="selectOptions[i]"
+                @input="changeDescription(i, $event)"></b-form-select>
+            </b-form-group>
 
-          <div v-show="!creating && !done">
-            <template v-for="(option, i) in options">
-              <p :key="i" class="option-box" v-if="!isNative(i) && option.type === 'confirm'">
-                <b-form-checkbox
-                  size="sm"
-                  :id="i"
-                  v-model="fields[i]"
-                  :value="true"
-                  :unchecked-value="false">{{ option.message }}</b-form-checkbox>
-              </p>
-
-              <b-form-group
-                v-if="!isNative(i) && option.type === 'list'"
-                v-show="option.when ? fields[option.when] : true"
-                :description="feedbacks[i]"
-                :key="i"
-                :label="option.message">
-                <b-form-select
-                  size="sm"
-                  :id="i"
-                  v-model="fields[i]"
-                  :options="selectOptions[i]"
-                  @input="changeDescription(i, $event)"></b-form-select>
-              </b-form-group>
-
-              <b-form-group
-                v-if="!isNative(i) && option.type === 'string'"
-                :label="option.label ? option.label : option.message"
-                :key=i
-                :required="option.required">
-                <b-form-input
-                  size="sm"
-                  :id="i"
-                  v-model.trim="fields[i]"></b-form-input>
-              </b-form-group>
-            </template>
-          </div>
+            <b-form-group
+              v-if="option.type === 'string'"
+              :label="option.label ? option.label : option.message"
+              :invalid-feedback="feedbacks[i]"
+              :state="states[i]"
+              :key="i">
+              <b-form-input
+                size="sm"
+                :id="i"
+                :state="states[i]"
+                :required="option.required"
+                v-model.trim="fields[i]"></b-form-input>
+            </b-form-group>
+          </template>
         </div>
       </div>
     </div>
-  </form>
+  </div>
 </template>
 
 <script type="text/javascript">
@@ -105,8 +74,6 @@ import vConsole from './../pseudoConsole'
 import forbidden from '../../forbiddenFileNames'
 import { find } from 'lodash'
 import { mapActions } from 'vuex'
-
-const defaultFields = require('../../defaultFields')
 
 export default {
   components: {
@@ -124,7 +91,7 @@ export default {
       return this.step === this.steps
     },
     showSelectTemplate () {
-      return this.steps > 2 && this.step === 2
+      return this.steps > 1 && this.step === 1
     },
     step () {
       return this.$store.state.step
@@ -132,63 +99,52 @@ export default {
     steps () {
       return this.$store.state.steps
     },
+    templateOptions () {
+      return this.$store.state.templateOptions
+    },
     templates () {
       return this.$store.state.templates
     },
-    validDetails () {
-      return this.states.name && this.states.description
-    },
     validTemplate () {
-      return this.states.template || this.maxSteps === 2
+      return this.fields.template || this.steps === 1
     }
   },
 
   data () {
     return {
-      feedbacks: {
-        description: '',
-        name: 'Please enter a valid project name!',
-        template: ''
-      },
-      fetchingOptions: false,
-      fields: {
-        description: '',
-        name: '',
-        template: false,
-        type: this.$store.state.type
-      },
+      feedbacks: this.$store.state.feedbacks,
+      fields: this.$store.state.fields,
       forbidden,
-      nativeOptions: [],
-      options: {},
       selectOptions: {},
-      states: {
-        description: true,
-        name: false,
-        template: false
-      }
+      states: {}
     }
   },
 
   methods: Object.assign({}, mapActions([
     'clearConsole',
+    'finishCreating',
     'updateSites',
     'output',
     'popConsole',
-    'setCreating',
+    'setFields',
+    'setTemplateOptions',
     'setDone',
     'setError',
+    'setTemplate',
     'setValid',
     'setWorking',
+    'startCreating',
     'unsetCreating',
+    'unsetResetting',
     'unsetWorking'
   ]), {
     changeDescription (i, val) {
-      let choice = find(this.options[i].choices, { value: val })
+      let choice = find(this.templateOptions[i].choices, { value: val })
 
       this.$set(this.feedbacks, i, choice.name)
     },
     create () {
-      this.setCreating()
+      this.startCreating()
       this.output('<span style="color:cyan">STARTING</span>')
 
       for (let item in this.fields) {
@@ -204,30 +160,24 @@ export default {
       axios
         .post(`/`, payload)
         .then((r) => {
-          this.updateSites(r.data.site)
-          this.setDone()
-          this.output(' ')
+          this.finishCreating(r.data.site)
         })
         .catch((e) => {
           this.manageErrorResponse(e.response)
         })
     },
     fetchOptions () {
-      this.resetOptions()
-      this.clearConsole()
-
-      this.fetchingOptions = true
+      this.setWorking()
+      this.output(`Please wait. Getting Options for template ${this.fields.template}...`)
 
       axios
         .get(`/options/${this.$store.state.type}/${this.fields.template}`)
         .then((r) => {
-          this.options = r.data.options
-          this.fetchingOptions = false
-          this.renderOptions()
+          this.setTemplate(this.fields.template)
+          this.setTemplateOptions(r.data.options)
         })
         .catch((e) => {
           this.manageErrorResponse(e.response)
-          this.fetchingOptions = false
         })
     },
     formatDataMessage (res) {
@@ -238,7 +188,7 @@ export default {
               </ul>`
     },
     getFieldDefVal (field) {
-      let obj = this.options[field]
+      let obj = this.templateOptions[field]
 
       switch (obj.type) {
         case 'confirm':
@@ -266,9 +216,6 @@ export default {
     hasField (fieldName) {
       return this.fields.hasOwnProperty(fieldName)
     },
-    isNative (optionName) {
-      return this.inArray(optionName, this.nativeOptions)
-    },
     manageErrorResponse (res) {
       this.setError()
       this.output(`<span style="color:red">${res.data.message}</span>`)
@@ -285,92 +232,43 @@ export default {
       )
     },
     renderOptions () {
-      for (let item in this.options) {
-        if (this.hasField(item)) {
-          this.nativeOptions.push(item)
-          continue
-        }
+      let options = this.templateOptions
 
+      for (let item in options) {
         this.setOptionField(item)
 
-        if (this.options[item].type === 'list') {
-          this.selectOptions[item] = this.getOptionsForItem(this.options[item].choices)
-          this.$set(this.feedbacks, item, this.options[item].choices[0].name)
+        if (options[item].type === 'list') {
+          this.selectOptions[item] = this.getOptionsForItem(options[item].choices)
+          this.$set(this.feedbacks, item, options[item].choices[0].name)
         }
       }
+      this.setFields(this.fields)
     },
     resetForm () {
-      for (let f in defaultFields.fields) {
-        this.fields[f] = defaultFields.fields[f]
+      this.fields = {}
+      this.states = {}
+      this.feedbacks = {}
+      this.selectOptions = {}
+
+      for (let f in this.$store.state.fields) {
+        this.$set(this.fields, f)
       }
 
-      for (let f in defaultFields.states) {
-        this.states[f] = defaultFields.states[f]
+      for (let f in this.$store.state.states) {
+        this.$set(this.states, f)
       }
 
-      for (let f in defaultFields.feedbacks) {
-        this.feedbacks[f] = defaultFields.feedbacks[f]
+      for (let f in this.$store.state.feedbacks) {
+        this.$set(this.feedbacks, f)
       }
 
-      this.resetOptions()
+      this.unsetResetting()
     },
     resetOptions () {
-      this.nativeOptions = []
       this.selectOptions = {}
-      this.options = {}
-
-      for (let f in this.fields) {
-        let found = defaultFields.fields.hasOwnProperty(f)
-
-        if (!found && !this.isNative(f)) {
-          delete this.fields[f]
-        }
-      }
     },
     setOptionField (fieldName) {
       this.$set(this.fields, fieldName, this.getFieldDefVal(fieldName))
-    },
-    validateProjectName () {
-      let found = find(this.$store.state.data.sites, { folder: this.fields.name })
-
-      if (found) {
-        this.states.name = false
-        this.feedbacks.name = 'Project already exists!'
-
-        return false
-      }
-
-      let vName = this.fields.name.match(/^[a-zA-Z]\w+$/)
-      let forb = this.inArray(this.fields.name.toUpperCase(), this.forbidden)
-
-      if (!vName || forb) {
-        this.states.name = false
-        this.feedbacks.name = 'Please enter a valid project name!'
-
-        return false
-      } else {
-        this.states.name = true
-        this.feedbacks.name = ''
-
-        return true
-      }
-    },
-    validateProjectDescription () {
-      if (this.fields.description === '') {
-        return true
-      }
-
-      if (!this.fields.description.match(/[a-zA-Z0-9 ]\w*$/)) {
-        this.states.description = false
-        this.feedbacks.description = 'Invalid Description!'
-
-        return false
-      } else {
-        this.states.description = true
-        this.feedbacks.description = ''
-
-        return true
-      }
     },
     valiateTemplate () {
       if (!this.fields.template) {
@@ -380,44 +278,44 @@ export default {
       }
 
       this.states.template = true
-      this.feedbacks.template = ''
+      this.feedbacks.template = 'Good choice!'
+      this.popConsole()
+      this.output(this.fields.type + ' Template: <span style="color:white">' + this.fields.template + '</span>')
+      this.output('<span style="color:cyan">Hit Next [->] to continue</span>')
+      this.output(`<span class="blink">_</span>`)
+
       return true
     }
   }),
 
   watch: {
-    fetchingOptions (state) {
-      state ? this.setWorking() : this.unsetWorking()
-    },
-    step (step) {
-      if (this.showSelectTemplate) {
-        this.setValid(this.validTemplate && this.validDetails)
-      } else {
-        this.setValid(this.validDetails)
-      }
-    },
-    validDetails (state) {
+    validTemplate (state) {
       this.setValid(state)
     },
-    validTemplate (state) {
-      this.setValid(state && this.validDetails)
-    },
     showOptions (state) {
-      if (state) {
+      if (state && this.fields.template !== this.$store.state.template) {
+        this.resetOptions()
+        this.popConsole()
         this.fetchOptions()
       }
     },
-    '$store.state.cancel' (state) {
-      if (state) {
-        this.resetForm()
-      }
-    },
-    '$store.state.type' (type) {
-      this.fields.type = type
-    },
+    // '$store.state.defaultTemplate' (tpl) {
+    //   this.fields.template = tpl
+    // },
+    // '$store.state.type' (type) {
+    //   this.fields.type = type
+    // },
     '$store.state.creating' (state) {
       if (state) {
         this.create()
+      }
+    },
+    '$store.state.templateOptions' (obj) {
+      this.renderOptions()
+    },
+    '$store.state.resetting' (state) {
+      if (state) {
+        this.resetForm()
       }
     }
   }

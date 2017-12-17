@@ -8,10 +8,10 @@
       <b-collapse is-nav id="nav_collapse">
         <b-navbar-nav style="border-left:1px solid #444">
           <b-nav-item-dropdown text="Create">
-            <template v-for="(item, i) in items">
+            <template v-for="(item, i) in managers">
               <b-dd-item-button
               :key="i"
-              @click="setType(item.name)">
+              @click="openCreateForm(item.name)">
                 {{ item.name }}
               </b-dd-item-button>
             </template>
@@ -49,13 +49,13 @@ import { mapActions } from 'vuex'
 
 export default {
   computed: {
-    items () {
+    managers () {
       return this.$store.state.data.managers
     }
   },
 
   methods: mapActions([
-    'setType'
+    'openCreateForm'
   ])
 }
 </script>

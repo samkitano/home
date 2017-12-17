@@ -6,7 +6,7 @@
     max-height: 150px;
     height: 150px;
     overflow-y: auto;
-    text-align: left
+    text-align: left;
   }
   .console p {
     margin: 0;
@@ -16,7 +16,8 @@
 </style>
 
 <template lang="html">
-  <div ref="console" class="console" v-show="console.length">
+  <div ref="console" class="console my-2">
+    <spinner/>
     <template v-for="(line, i) in console">
       <p v-html="line" :key="i"></p>
     </template>
@@ -24,7 +25,13 @@
 </template>
 
 <script type="text/javascript">
+import spinner from './_spinner'
+
 export default {
+  components: {
+    spinner
+  },
+
   computed: {
     console () {
       return this.$store.state.console

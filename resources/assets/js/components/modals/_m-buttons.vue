@@ -10,7 +10,7 @@
     </b-btn>
 
     <b-btn
-      :variant="variant"
+      :variant="infoVariant"
       disabled
       size="sm">{{ infoText }}</b-btn>
 
@@ -26,9 +26,9 @@
     <b-btn
       v-show="step === steps && (!done && !error)"
       size="sm"
+      type="submit"
       :disabled="working"
-      :variant="working ? 'secondary' : 'primary'"
-      @click="setCreating">
+      :variant="working ? 'secondary' : 'primary'">
       Create
     </b-btn>
   </b-col>
@@ -43,15 +43,7 @@ export default {
       return this.$store.state.creating
     },
     description () {
-      if (this.step === 1) {
-        return 'Enter details'
-      }
-
-      if (this.step === 2 && this.steps > 2) {
-        return 'Select Template'
-      }
-
-      return 'Select Options'
+      return this.step === 1 && this.steps > 1 ? 'Select Template' : 'Details'
     },
     done () {
       return this.$store.state.done
@@ -63,9 +55,17 @@ export default {
       if (this.$store.state.error) {
         return 'ERROR!'
       }
+
       return this.done
-        ? 'Project Created!'
+        ? 'CREATED!'
         : `Step ${this.step} of ${this.steps}: ${this.description}`
+    },
+    infoVariant () {
+      if (this.error) {
+        return 'outline-danger'
+      }
+
+      return 'outline-' + (this.valid ? 'success' : 'secondary')
     },
     step () {
       return this.$store.state.step
@@ -79,12 +79,6 @@ export default {
     valid () {
       return this.$store.state.valid
     },
-    variant () {
-      if (this.$store.state.error) {
-        return 'outline-danger'
-      }
-      return this.valid ? 'outline-success' : 'outline-secondary'
-    },
     working () {
       return this.$store.state.working
     }
@@ -92,8 +86,7 @@ export default {
 
   methods: mapActions([
     'nextStep',
-    'prevStep',
-    'setCreating'
+    'prevStep'
   ])
 }
 </script>

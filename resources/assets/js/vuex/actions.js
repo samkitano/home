@@ -1,99 +1,119 @@
-export const cancel = ({ commit }) => {
-  commit('CANCEL')
+/** global axios */
+import axios from 'axios'
+
+let isJson = (str) => {
+  try {
+    let j = JSON.parse(str)
+    if (j && typeof j === 'object') return j
+  } catch (e) {}
+
+  return false
+}
+
+let formatWhiteMsg = (str) => {
+  let r1 = str.replace(/ \*\*/g, ' <span style="color:white">')
+  let r2 = r1.replace(/\*\*/g, '</span>')
+
+  return r2
+}
+
+let consoleColors = {
+  info: 'cyan',
+  error: 'red',
+  warning: 'yellow',
+  default: 'green'
 }
 
 export const clearConsole = ({ commit }) => {
   commit('CLEAR_CONSOLE')
 }
 
-export const nextStep = ({ commit }) => {
-  commit('NEXT_STEP')
-}
-
-export const prevStep = ({ commit }) => {
-  commit('PREV_STEP')
-}
-
 export const popConsole = ({ commit }) => {
   commit('POP_CONSOLE')
 }
 
-export const resetCreate = ({ commit }) => {
-  commit('RESET_CREATE')
-}
+export const writeToConsole = ({ commit }, out) => {
+  let json = isJson(out)
+  let type = 'default'
+  let msg = out
 
-export const resetStep = ({ commit }) => {
-  commit('RESET_STEP')
+  if (json) {
+    type = json['type'] ? json.type : type
+    msg = json['message'] ? json.message : msg
+  }
+
+  // strings between two asterisks will be parsed white
+  if (msg.indexOf('**') > -1) {
+    msg = formatWhiteMsg(msg)
+  }
+
+  // a nice blinking cursor
+  if (msg === '_CURSOR_') {
+    commit('OUTPUT', '<span class="blink">_</span>')
+    return
+  }
+
+  commit('OUTPUT', `<span style="color:${consoleColors[type]}">${msg}</span>`)
 }
 
 export const output = ({ commit }, msg) => {
   commit('OUTPUT', msg)
 }
 
-export const setCreating = ({ commit }) => {
-  commit('SET_CREATING')
-}
-
-export const setDone = ({ commit }) => {
-  commit('SET_DONE')
-}
-
-export const setError = ({ commit }) => {
-  commit('SET_ERROR')
-}
-
 export const setInfoModal = ({ commit }, data) => {
   commit('SET_INFO_MODAL', data)
-}
-
-export const setSteps = ({ commit }, nSteps) => {
-  commit('SET_STEPS', nSteps)
-}
-
-export const setTemplates = ({ commit }, templates) => {
-  commit('SET_TEMPLATES', templates)
 }
 
 export const setProjectsData = ({ commit }, data) => {
   commit('SET_PROJECTS_DATA', data)
 }
 
-export const setType = ({ commit }, str) => {
-  commit('SET_TYPE', str)
+export const openCreateForm = ({ commit }, type) => {
+  commit('OPEN_FORM', type)
 }
 
-export const setValid = ({ commit }, stt) => {
-  commit('SET_VALID', stt)
+export const closeCreateForm = ({ commit }) => {
+  commit('CLOSE_FORM')
+  commit('CLEAR_CONSOLE')
+}
+
+export const setTemplate = ({ commit }, tpl) => {
+  commit('SET_TEMPLATE', tpl)
+}
+
+export const setTemplateOptions = ({ commit, state }, tpl) => {
+  commit('SET_TEMPLATE', tpl)
+
+  if (!tpl && !state.templateOptions) return
+  if (!tpl && state.hasTemplates) return
+
+  commit('SET_WORKING')
+
+  axios
+    .get(`/options/${state.type}/${tpl}`)
+    .then(r => {
+      commit('SET_TEMPLATE_OPTIONS', r.data.options)
+      // state.templateOptions = r.data.options
+      commit('UNSET_WORKING')
+    })
+    .catch((e) => {
+      // this.manageErrorResponse(e.response)
+      commit('UNSET_WORKING')
+    })
+}
+
+export const resetTemplateOptions = ({ commit }) => {
+  commit('RESET_TEMPLATE_OPTIONS')
 }
 
 export const setWorking = ({ commit }) => {
-  commit('SET_WORKING', true)
-}
-
-export const unsetCancel = ({ commit }) => {
-  commit('UNSET_CANCEL')
-}
-
-export const unsetError = ({ commit }) => {
-  commit('UNSET_ERROR')
-}
-
-export const unsetCreating = ({ commit }) => {
-  commit('SET_CREATING', false)
-}
-
-export const unsetDone = ({ commit }) => {
-  commit('SET_DONE', false)
-}
-
-export const unsetType = ({ commit }) => {
-  commit('SET_TYPE', '')
+  commit('SET_WORKING')
 }
 
 export const unsetWorking = ({ commit }) => {
-  commit('SET_WORKING', false)
+  commit('UNSET_WORKING')
 }
 
-export const updateSites = ({ commit }, data) => {
-  commit('UPDATE_SITES', data)
+export const updateSites = ({ commit }, site) => {
+  commit('UPDATE_SITES', site)
 }

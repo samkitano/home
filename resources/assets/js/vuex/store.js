@@ -6,19 +6,16 @@ export default function () {
     actions,
     mutations,
     state: {
-      action: '',
-      cancel: false,
       console: [],
       creating: false,
       data: {},
-      done: false,
-      error: false,
+      hasTemplates: false,
       infoModal: {},
-      steps: 0,
-      step: 1,
+      showCreateModal: false,
+      template: '',
+      templateOptions: {},
       templates: [],
       type: '',
-      valid: false,
       working: false
     }
   }

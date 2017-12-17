@@ -6,14 +6,11 @@
 </style>
 
 <template lang="html">
-  <b-container fluid>
+  <div class="w-100">
     <m-title/>
-
-    <b-row>
-      <m-buttons/>
-      <spinner/>
-    </b-row>
-  </b-container>
+    <m-buttons/>
+    <spinner/>
+  </div>
 </template>
 
 <script type="text/javascript">

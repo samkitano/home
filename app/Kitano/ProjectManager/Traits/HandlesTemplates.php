@@ -68,7 +68,7 @@ trait HandlesTemplates
 
         if ($hasLocal) {
             $match = static::checkVersions(static::$template);
-            $matchText = $match ? "Up to date" : "Obsolete";
+            $matchText = $match ? "Up to date" : "Obsolete or Absent";
 
             Console::broadcast("Local template is {$matchText}!", 'info');
         }
@@ -156,7 +156,7 @@ trait HandlesTemplates
             return false;
         }
 
-        Console::broadcast("Latest template '".static::$template."' version = v{$remote}");
+        Console::broadcast("Latest template '".static::$template."' version = {$remote}");
 
         return $remote;
     }
@@ -196,9 +196,9 @@ trait HandlesTemplates
      *
      * @return mixed
      */
-    protected static function decodeMeta($content, $isJson)
+    public static function decodeMeta($content, $isJson)
     {
-        Console::broadcast("Decoding...");
+        Console::broadcast("Reading meta...");
 
         if ($isJson) {
             return Yaml::parse($content);

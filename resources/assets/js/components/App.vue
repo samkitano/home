@@ -24,6 +24,13 @@
   .inverted {
     transform: rotate(180deg);
   }
+  .fade-enter-active, .fade-leave-active {
+    opacity: 1;
+    transition: opacity .4s ease-in-out;
+  }
+  .fade-enter, .fade-leave-active {
+    opacity: 0
+  }
 </style>
 
 <template>

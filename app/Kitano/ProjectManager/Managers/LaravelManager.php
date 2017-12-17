@@ -34,6 +34,17 @@ class LaravelManager extends ProjectBuilder implements Manager
      * @var array
      */
     protected static $prompts = [
+        'name' => [
+            'required' => true,
+            'type' => 'string',
+            'label' => 'Project Name',
+            'message' => 'Enter a name for your project',
+        ],
+        'description' => [
+            'type' => 'string',
+            'label' => 'Description',
+            'message' => 'Project description'
+        ],
         'runNpm' => [
             'type' => 'confirm',
             'message' => 'Run npm after install?'

@@ -1,14 +1,14 @@
 <template lang="html">
-  <b-btn
-    block
-    size="sm"
-    :disabled="working"
-    @click="cancel">{{ done || error ? 'Close' : 'Cancel' }}</b-btn>
+    <b-btn
+      block
+      type="reset"
+      size="sm"
+      :disabled="working">
+      {{ done || error ? 'Close' : 'Cancel' }}
+    </b-btn>
 </template>
 
 <script type="text/javascript">
-import { mapActions } from 'vuex'
-
 export default {
   computed: {
     done () {
@@ -20,10 +20,6 @@ export default {
     working () {
       return this.$store.state.working
     }
-  },
-
-  methods: mapActions([
-    'cancel'
-  ])
+  }
 }
 </script>
