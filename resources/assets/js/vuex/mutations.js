@@ -37,14 +37,6 @@ const mutations = {
     state.data = data
   },
 
-  // SET_CREATE_PARAMS (state, str) {
-  //   let manager = find(state.data.managers, { name: str })
-
-  //   state.defaultTemplate = manager.templates[0]
-  //   state.steps = manager.templates.length ? 2 : 1
-  //   state.templates = manager.templates
-  // },
-
   SET_TEMPLATE (state, str) {
     state.template = str
   },
@@ -62,6 +54,8 @@ const mutations = {
   OPEN_FORM (state, type) {
     let manager = find(state.data.managers, { name: type })
 
+    state.done = false
+    state.error = false
     state.type = type
     state.templates = manager.templates
     state.hasTemplates = manager.templates.length > 0
@@ -78,6 +72,24 @@ const mutations = {
   },
   UNSET_CREATING (state) {
     state.create = false
+  },
+
+  // DONE
+  SET_DONE (state) {
+    state.done = true
+  },
+
+  UNSET_DONE (state) {
+    state.done = false
+  },
+
+  // ERROR
+  SET_ERROR (state) {
+    state.error = true
+  },
+
+  UNSET_ERROR (state) {
+    state.error = false
   },
 
   // WORKING

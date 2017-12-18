@@ -93,11 +93,26 @@ export const setTemplateOptions = ({ commit, state }, tpl) => {
     .get(`/options/${state.type}/${tpl}`)
     .then(r => {
       commit('SET_TEMPLATE_OPTIONS', r.data.options)
-      // state.templateOptions = r.data.options
       commit('UNSET_WORKING')
     })
     .catch((e) => {
-      // this.manageErrorResponse(e.response)
+      let err = e.response.data
+
+      commit('SET_ERROR')
+      commit('OUTPUT', `<span style="color:red">ERROR!</span>`)
+
+      if (err.exception) {
+        commit('OUTPUT', `<span style="color:red">${err.exception}</span>`)
+      }
+      if (err.message) {
+        commit('OUTPUT', `<span style="color:red">${err.message}</span>`)
+      }
+      if (err.file) {
+        commit('OUTPUT', `<span style="color:red">File: ${err.file}</span>`)
+      }
+      if (err.line) {
+        commit('OUTPUT', `<span style="color:red">Line: ${err.line}</span>`)
+      }
       commit('UNSET_WORKING')
     })
 }
@@ -108,6 +123,14 @@ export const resetTemplateOptions = ({ commit }) => {
 
 export const setWorking = ({ commit }) => {
   commit('SET_WORKING')
+}
+
+export const unsetDone = ({ commit }) => {
+  commit('UNSET_DONE')
+}
+
+export const unsetError = ({ commit }) => {
+  commit('UNSET_ERROR')
 }
 
 export const unsetWorking = ({ commit }) => {

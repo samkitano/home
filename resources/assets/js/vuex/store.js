@@ -6,6 +6,7 @@ export default function () {
     actions,
     mutations,
     state: {
+      error: false,
       console: [],
       creating: false,
       data: {},
