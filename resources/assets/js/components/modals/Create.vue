@@ -28,7 +28,7 @@
             v-model="fields.template"
             @input="setTemplateOptions">
             <template slot="first">
-              <option :value="null" disabled>-- Please select a Template --</option>
+              <option :value="null" disabled>-- Select a Template --</option>
             </template>
           </b-form-select>
         </b-form-group>
@@ -80,7 +80,8 @@
                 :id="i"
                 :required="option.required"
                 :state="states[i]"
-                v-model.trim="fields[i]"></b-form-input>
+                v-model.trim="fields[i]"
+              ></b-form-input>
             </b-form-group>
           </template>
         </div>
@@ -89,6 +90,7 @@
       <b-btn
         type="reset"
         size="sm"
+        :block="error || done"
         :disabled="working"
         @click="closeCreateForm">
         {{ done || error ? 'Close' : 'Cancel' }}
@@ -99,7 +101,8 @@
         size="sm"
         class="float-right"
         variant="primary"
-        :disabled="working || !hasTemplate">
+        :disabled="working || !hasTemplate"
+        v-show="!error && !done">
         Create
       </b-btn>
     </b-form>
@@ -125,8 +128,20 @@ export default {
     creating () {
       return this.$store.state.creating
     },
+    defaults () {
+      return this.$store.state.data.defaults
+    },
+    done () {
+      return this.$store.state.done
+    },
+    error () {
+      return this.$store.state.error
+    },
     hasTemplate () {
       return (this.showSelectTemplate && this.fields.template) || !this.showSelectTemplate
+    },
+    sites () {
+      return this.$store.state.data.sites
     },
     showSelectTemplate () {
       return this.templates.length > 0
@@ -154,8 +169,6 @@ export default {
 
   data () {
     return {
-      done: false,
-      error: false,
       feedbacks: {},
       fields: {
         template: null
@@ -169,6 +182,8 @@ export default {
     'closeCreateForm',
     'setTemplateOptions',
     'resetTemplateOptions',
+    'unsetError',
+    'unsetDone',
     'writeToConsole'
   ]), {
     changeDescription (i, val) {
@@ -180,6 +195,7 @@ export default {
       /**
        * Check required fields
        * kind of redundant, since html won't let post anyway
+       * @TODO: scroll to invalid field
        */
       for (let f in this.templateOptions) {
         if (this.templateOptions[f].required && !this.fields[f]) {
@@ -191,7 +207,7 @@ export default {
 
       if (!this.fields.name) return false
 
-      let found = find(this.$store.state.data.sites, { folder: this.fields.name })
+      let found = find(this.sites, { folder: this.fields.name })
 
       if (found) {
         this.states.name = false
@@ -203,7 +219,7 @@ export default {
 
       if (!vName) {
         this.states.name = false
-        this.feedbacks.name = 'Please enter a valid project name: /^[a-zA-Z]\w+$/'
+        this.feedbacks.name = 'Please enter a valid project name: /^[a-zA-Z]\w+$/' // eslint-disable-line no-useless-escape
         return true
       }
 
@@ -222,7 +238,8 @@ export default {
       this.fields = {}
       this.states = {}
       this.feedbacks = {}
-      this.error = false
+      this.unsetError()
+      this.unsetDone()
       this.done = false
       Vue.set(this.fields, 'template', null)
     },
@@ -275,8 +292,8 @@ export default {
         case 'list':
           return obj['choices'] ? obj.choices[0].value : false
         case 'string':
-          if (this.$store.state.data.defaults[field]) {
-            return this.$store.state.data.defaults[field]
+          if (this.defaults[field]) {
+            return this.defaults[field]
           }
           return obj['default'] ? obj.default : ''
         default:
