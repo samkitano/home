@@ -6,7 +6,7 @@
     max-height: 150px;
     height: 150px;
     overflow-y: auto;
-    text-align: left;
+    text-align: left
   }
   .console p {
     margin: 0;
