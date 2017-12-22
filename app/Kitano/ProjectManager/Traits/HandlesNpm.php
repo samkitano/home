@@ -18,18 +18,6 @@ trait HandlesNpm
      */
     protected $package = null;
 
-    /**
-     * Will hold vue cli command
-     *
-     * @var string
-     */
-    protected $vueCommand = '';
-
-    /**
-     * @var null|string
-     */
-    protected $vueLocation = null;
-
 
     /**
      * @return string
@@ -54,22 +42,10 @@ trait HandlesNpm
      *
      * @param string $folder
      */
-    protected function setPackageContent($folder)
+    protected function setNpmPackageContent($folder)
     {
         $this->package = file_exists($folder.'/package.json')
             ? json_decode(file_get_contents($folder.'/package.json'), true)
             : null;
-    }
-
-    /**
-     * Set Vue-Cli command
-     *
-     * @deprecated
-     *
-     * @param string $command
-     */
-    protected function setVueCliCommand($command)
-    {
-        $this->vueCommand = $command;
     }
 }

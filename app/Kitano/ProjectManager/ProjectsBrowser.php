@@ -81,7 +81,7 @@ class ProjectsBrowser
         }
 
         $this->setComposerContent($folder);
-        $this->setPackageContent($folder);
+        $this->setNpmPackageContent($folder);
 
         $t['url'] = "http://{$folderName}.{$this->tld}";
         $t['folder'] = $folderName;

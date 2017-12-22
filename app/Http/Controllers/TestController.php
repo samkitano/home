@@ -84,11 +84,11 @@ dd($f);
 //
 //        dd($results);
 //        $r = new Request();
-        $metaFile = public_path(env('TEMPLATES')).DIRECTORY_SEPARATOR.'express-template'.DIRECTORY_SEPARATOR.'meta.js';
+        $metaFile = public_path(env('TEMPLATES')).DIRECTORY_SEPARATOR.'webpack-simple'.DIRECTORY_SEPARATOR.'meta.json';
 
         $meta = file_get_contents($metaFile);
 
-        $filters = HandlesTemplates::decodeMeta($meta, false);dd($filters);
+        $filters = HandlesTemplates::decodeMeta($meta, true);dd($filters);
         $r->template = 'webpack';
         $r->options = [
             'name' => 'Sammy',
