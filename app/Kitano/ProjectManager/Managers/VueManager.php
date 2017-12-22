@@ -26,9 +26,26 @@ class VueManager extends ProjectBuilder implements Manager
      * @var array
      */
     protected static $prompts = [
-        'runNpm' => [
-            'type' => 'confirm',
-            'message' => 'Run npm after install?'
+        'autoInstall' => [
+            'type' => 'list',
+            'message' => 'Should we run `npm install` for you after the project has been created? (recommended)',
+            'choices' => [
+                [
+                    'name' => 'Yes, use Npm',
+                    'value' => 'npm',
+                    'short' => 'npm'
+                ],
+                [
+                    'name' => 'Yes, use Yarn',
+                    'value' => 'yarn',
+                    'short' => 'yarn'
+                ],
+                [
+                    'name' => 'No, I will handle that myself',
+                    'value' => false,
+                    'short' => 'no'
+                ],
+            ]
         ]
     ];
 
@@ -94,16 +111,16 @@ class VueManager extends ProjectBuilder implements Manager
         Console::broadcast("Fetching '{$template}' meta");
 
         $meta = HandlesTemplates::getMeta($template, static::$templatesRepo);
+        $prompts = array_merge(
+            isset($meta['prompts'])
+                ? array_except($meta['prompts'], ['autoInstall'])
+                : [],
+            static::$prompts
+        );
 
         Console::broadcast("Ready to rock!");
         Console::broadcast("Awaiting options... Pick your needs and hit [Create].", 'info');
         Console::broadcast("_CURSOR_");
-
-        $prompts = array_merge(isset($meta['prompts']) ? $meta['prompts'] : [], static::$prompts);
-
-        if (isset($prompts['autoInstall'])) {
-            unset($prompts['runNpm']);
-        }
 
         return $prompts;
     }
