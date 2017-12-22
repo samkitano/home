@@ -45,9 +45,26 @@ class LaravelManager extends ProjectBuilder implements Manager
             'label' => 'Description',
             'message' => 'Project description'
         ],
-        'runNpm' => [
-            'type' => 'confirm',
-            'message' => 'Run npm after install?'
+        'autoInstall' => [
+            'type' => 'list',
+            'message' => 'Should we run `npm install` for you after the project has been created? (recommended)',
+            'choices' => [
+                [
+                    'name' => 'Yes, use Npm',
+                    'value' => 'npm',
+                    'short' => 'npm'
+                ],
+                [
+                    'name' => 'Yes, use Yarn',
+                    'value' => 'yarn',
+                    'short' => 'yarn'
+                ],
+                [
+                    'name' => 'No, I will handle that myself',
+                    'value' => false,
+                    'short' => 'no'
+                ],
+            ]
         ]
     ];
 
