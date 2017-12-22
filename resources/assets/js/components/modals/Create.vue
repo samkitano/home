@@ -13,7 +13,9 @@
       @reset="onReset"
       @submit="onSubmit">
       <div class="w-100">
-        <m-title/>
+        <h3 class="text-center mb-3">
+          New <span :class="this.$store.state.type.toLowerCase()">{{ type }}</span> project
+        </h3>
       </div>
 
       <v-console/>
@@ -111,7 +113,6 @@
 
 <script type="text/javascript">
 /* global Echo, Vue */
-import mTitle from './_m-title'
 import vConsole from './../pseudoConsole'
 import forbidden from '../../forbiddenFileNames'
 
@@ -120,7 +121,6 @@ import { find } from 'lodash'
 
 export default {
   components: {
-    mTitle,
     vConsole
   },
 
@@ -152,6 +152,9 @@ export default {
     templates () {
       return this.$store.state.templates
     },
+    type () {
+      return this.$store.state.type
+    },
     working () {
       return this.$store.state.working
     }
@@ -180,10 +183,10 @@ export default {
 
   methods: Object.assign({}, mapActions([
     'closeCreateForm',
-    'setTemplateOptions',
     'resetTemplateOptions',
-    'unsetError',
+    'setTemplateOptions',
     'unsetDone',
+    'unsetError',
     'writeToConsole'
   ]), {
     changeDescription (i, val) {
