@@ -4,6 +4,7 @@ namespace App\Kitano\ProjectManager;
 
 use Illuminate\Http\Request;
 use App\Kitano\ProjectManager\Traits\HandlesNpm;
+use App\Kitano\ProjectManager\Traits\HandlesYarn;
 use App\Kitano\ProjectManager\Traits\ProjectLogger;
 use App\Kitano\ProjectManager\PseudoConsole\Console;
 use App\Kitano\ProjectManager\Traits\HandlesComposer;
@@ -12,7 +13,7 @@ use App\Kitano\ProjectManager\Exceptions\ProjectManagerException;
 
 class ProjectBuilder
 {
-    use HandlesComposer, HandlesNpm, ProjectLogger;
+    use HandlesComposer, HandlesNpm, HandlesYarn, ProjectLogger;
 
     /** @var \App\Kitano\ProjectManager\Contracts\Manager */
     protected $manager;
@@ -46,7 +47,7 @@ class ProjectBuilder
 
         $this->options = array_except(
             $this->request->input(),
-            ['_method', 'type', 'runNpm', 'template']
+            ['_method', 'type', 'autoInstall', 'template']
         );
     }
 
@@ -229,23 +230,20 @@ class ProjectBuilder
 
         return call_user_func($manager.'::getProjectTemplates');
     }
+
     /**
-     * Run npm install
+     * Install js dependencies
      *
      * @return $this
      * @throws ProjectManagerException
      */
     protected function runNpm()
     {
-        $run = $this->request->has('runNpm') && $this->request->input('runNpm')
-            || $this->request->has('autoInstall') && $this->request->input('autoInstall') !== false;
-
-        if (! $run) {
+        if (! $this->request->has('autoInstall') || $this->request->input('autoInstall') === false) {
             return $this;
         }
 
-        // TODO: Yarn
-        Console::broadcast('Running npm install.');
+        Console::broadcast('Installing javascript dependencies.');
 
         chdir($this->getProjectsDir().DIRECTORY_SEPARATOR.$this->projectName);
 
@@ -258,17 +256,21 @@ class ProjectBuilder
             exec('sudo chown -R $USER:$(id -gn $USER) /Library/WebServer/.config');
         }
 
-        $this->setNpmCommand();
-
-        $out = $this->runNpmCommand();
-
-        if (null === $out) {
-            throw new ProjectManagerException('Error running npm!');
+        if ($this->request->input('autoInstall') === 'npm') {
+            $this->setNpmCommand();
+            $out = $this->runNpmCommand();
+        } else {
+            $this->setYarnCommand();
+            $out = $this->runYarnCommand();
         }
 
-        Console::broadcast("NPM finished. Writing Log.");
+        if (null === $out) {
+            throw new ProjectManagerException('Error installing javascript dependencies!');
+        }
 
-        $this->writeLog("npm-install", $out);
+        Console::broadcast("Finished installing js deps. Writing Log.");
+
+        $this->writeLog("{$this->request->input('autoInstall')}-install", $out);
 
         return $this;
     }
