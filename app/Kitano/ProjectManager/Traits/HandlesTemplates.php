@@ -2,8 +2,8 @@
 
 namespace App\Kitano\ProjectManager\Traits;
 
-use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
+use Symfony\Component\Yaml\Exception\ParseException;
 use App\Kitano\ProjectManager\PseudoConsole\Console;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use App\Kitano\ProjectManager\Exceptions\ProjectManagerException;
@@ -58,6 +58,11 @@ trait HandlesTemplates
     }
 
     /**
+     * Figure out if we need to download latest version of template
+     * or just use a locally saved one.
+     *
+     * If templates are not versioned, they will ALWAYS be downloaded.
+     *
      * @throws ProjectManagerException
      */
     protected static function fetchTemplate()
@@ -114,6 +119,8 @@ trait HandlesTemplates
     }
 
     /**
+     * Compares local and remote template versions, if there is any versioning
+     *
      * @return bool
      * @throws ProjectManagerException
      */
@@ -138,6 +145,8 @@ trait HandlesTemplates
     }
 
     /**
+     * Get latest template version if versioned
+     *
      * @return bool|mixed
      * @throws ProjectManagerException
      */
@@ -183,27 +192,41 @@ trait HandlesTemplates
             throw new ProjectManagerException("Can not determine version of local template '".static::$template."'.");
         }
 
-        Console::broadcast("Local template '".static::$template."' version = v{$pj->version}");
+        Console::broadcast("Local template '".static::$template."' version = {$pj->version}");
 
         return $pj->version;
     }
 
     /**
-     * Extract prompts and filters from meta to an array
+     * Extract json stuff from meta to an array
      *
      * @param string  $content
      * @param boolean $isJson
      *
-     * @return mixed
+     * @return array
      */
     public static function decodeMeta($content, $isJson)
     {
         Console::broadcast("Reading meta...");
 
         if ($isJson) {
-            return Yaml::parse($content);
+            // pure json content, so json_decode will do
+            return json_decode($content, true);
         }
 
+        /**
+         * Since this is NOT a pure json file and it may contain javascript stuff,
+         * we need to somehow get rid of that js stuff and find a way to parse
+         * only useful json content into a PHP array we can use.
+         *
+         * Symphony's Yaml parser seems perfect for the job.
+         *
+         * Word of advise: We are assuming that meta.js files they all start
+         * with a module.exports statement. I can't think of any other way
+         * to abstract this stuff without having to iterate and test
+         * (tree style) every single line of code. Let me know if
+         * you come up with a more elegant/reliable approach.
+         */
         $content = getFromModuleExports($content);
         $e = explode(PHP_EOL.'  },', $content);
         $res = [];
@@ -214,6 +237,7 @@ trait HandlesTemplates
             $block = stripDangCommas($block);
 
             try {
+
                 $res = array_merge($res, Yaml::parse($block));
             }
             catch (ParseException $e) {}
@@ -230,26 +254,54 @@ trait HandlesTemplates
     public static function writeFiles($files)
     {
         if (isset($files['copy'])) {
-            foreach ($files['copy'] as $file) {
-                if (! is_dir($file['dest'])) {
-                    mkdir($file['dest'], 0777, true);
-                }
-
-                copy(
-                    $file['src'].DIRECTORY_SEPARATOR.$file['file'],
-                    $file['dest'].DIRECTORY_SEPARATOR.$file['file']
-                );
-            }
+            static::copyCompiled($files['copy']);
         }
 
         if (isset($files['create'])) {
-            foreach ($files['create'] as $file) {
-                if (! is_dir($file['dest'])) {
-                    mkdir($file['dest'], 0777, true);
-                }
+            static::createCompiled($files['create']);
+        }
+    }
 
-                file_put_contents($file['dest'].DIRECTORY_SEPARATOR.$file['file'], $file['content']);
-            }
+    /**
+     * Copy compiled files
+     *
+     * @param array $files
+     */
+    protected static function copyCompiled($files)
+    {
+        foreach ($files as $file) {
+            static::createCompiledDir($file['dest']);
+
+            copy(
+                $file['src'].DIRECTORY_SEPARATOR.$file['file'],
+                $file['dest'].DIRECTORY_SEPARATOR.$file['file']
+            );
+        }
+    }
+
+    /**
+     * Create compiled files
+     *
+     * @param array $files
+     */
+    protected static function createCompiled($files)
+    {
+        foreach ($files as $file) {
+            static::createCompiledDir($file['dest']);
+
+            file_put_contents($file['dest'].DIRECTORY_SEPARATOR.$file['file'], $file['content']);
+        }
+    }
+
+    /**
+     * Create project directories as needed
+     *
+     * @param string $dir
+     */
+    protected static function createCompiledDir($dir)
+    {
+        if (! is_dir($dir)) {
+            mkdir($dir, 0777, true);
         }
     }
 }
